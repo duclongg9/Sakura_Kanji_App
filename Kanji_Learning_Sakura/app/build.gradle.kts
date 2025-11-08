@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.kanji_learning_sakura"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -37,7 +37,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // JDBC driver để đăng nhập trực tiếp MySQL trong ứng dụng
-    implementation("mysql:mysql-connector-j:8.0.33")
+    testRuntimeOnly("mysql:mysql-connector-java:8.0.33")
 
     // Unit test (JDBC chỉ dùng ở test)
     testImplementation("junit:junit:4.13.2")
@@ -45,4 +45,5 @@ dependencies {
     // Android test
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
 }

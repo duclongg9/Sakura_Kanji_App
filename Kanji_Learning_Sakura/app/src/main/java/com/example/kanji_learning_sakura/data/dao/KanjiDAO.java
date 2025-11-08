@@ -1,4 +1,4 @@
-package com.example.kanji_learning_sakura.dao;
+package com.example.kanji_learning_sakura.data.dao;
 
 import com.example.kanji_learning_sakura.model.Kanji;
 import java.sql.*;

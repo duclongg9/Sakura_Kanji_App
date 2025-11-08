@@ -1,6 +1,6 @@
-package com.example.kanji_learning_sakura.dao;
+package com.example.kanji_learning_sakura.data.dao;
 
-import com.example.kanji_learning_sakura.infra.DBConnection;
+import com.example.kanji_learning_sakura.data.DBConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
 

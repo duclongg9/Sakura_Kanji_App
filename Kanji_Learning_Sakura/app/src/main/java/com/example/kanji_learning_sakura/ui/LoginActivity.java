@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.kanji_learning_sakura.R;
 import com.example.kanji_learning_sakura.config.AuthPrefs;
-import com.example.kanji_learning_sakura.data.dao.UserDao;
+import com.example.kanji_learning_sakura.data.dao.UserDAO;
 import com.example.kanji_learning_sakura.model.User;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -15,7 +15,7 @@ import java.sql.SQLException;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private UserDao userDao;
+    private UserDAO userDAO;
     private AuthPrefs authPrefs;
     private TextInputEditText edtIdentifier;
     private TextInputEditText edtPassword;
@@ -25,7 +25,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_login);
-        userDao = new UserDao();
+        userDAO = new UserDAO();
         authPrefs = new AuthPrefs(this);
 
         edtIdentifier = findViewById(R.id.edtIdentifier);
@@ -59,7 +59,7 @@ public class LoginActivity extends AppCompatActivity {
         setLoadingState(true);
         new Thread(() -> {
             try {
-                User user = userDao.authenticate(identifier, password);
+                User user = userDAO.authenticate(identifier, password);
                 runOnUiThread(() -> {
                     setLoadingState(false);
                     if (user == null) {
