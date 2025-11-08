@@ -7,8 +7,15 @@ import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
 
+/**
+ * Interceptor tự động gắn header Authorization vào mỗi request nếu người dùng đã đăng nhập.
+ */
 public class AuthInterceptor implements Interceptor {
     private final AuthPrefs prefs;
+
+    /**
+     * @param ctx context dùng để khởi tạo SharedPreferences lưu token.
+     */
     public AuthInterceptor(Context ctx) { this.prefs = new AuthPrefs(ctx); }
 
     @Override public Response intercept(Chain chain) throws IOException {

@@ -10,4 +10,6 @@
     <color name="hanabiPink">#E9B8BC</color>
     <color name="hanabiInk">#2B2B2B</color>
     <color name="hanabiWhite">#FFFFFF</color>
+    <color name="hanabiSuccess">#2E7D32</color>
+    <color name="hanabiError">#C62828</color>
 </resources>
