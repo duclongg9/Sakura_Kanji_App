@@ -49,7 +49,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnNext"
-        style="?attr/materialButtonFilledTonalStyle"
+        style="@style/Widget.Material3.Button.FilledTonal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/quiz_next"

@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardStrokeWidth="1dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/hanabiInk"
     app:cardCornerRadius="18dp">
 
     <TextView
