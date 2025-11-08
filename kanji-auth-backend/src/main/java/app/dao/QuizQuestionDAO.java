@@ -32,15 +32,16 @@ public class QuizQuestionDAO extends BaseDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     long questionId = rs.getLong("question_id");
-                    QuizQuestion question = questionMap.computeIfAbsent(questionId, id -> {
-                        QuizQuestion q = new QuizQuestion();
-                        q.setId(id);
-                        q.setLessonId(lessonId);
-                        q.setPrompt(getSafeString(rs, "prompt"));
-                        q.setExplanation(getSafeString(rs, "explanation"));
-                        q.setOrderIndex(rs.getInt("order_index"));
-                        return q;
-                    });
+                    QuizQuestion question = questionMap.get(questionId);
+                    if (question == null) {
+                        question = new QuizQuestion();
+                        question.setId(questionId);
+                        question.setLessonId(lessonId);
+                        question.setPrompt(getSafeString(rs, "prompt"));
+                        question.setExplanation(getSafeString(rs, "explanation"));
+                        question.setOrderIndex(rs.getInt("order_index"));
+                        questionMap.put(questionId, question);
+                    }
 
                     long choiceId = rs.getLong("choice_id");
                     if (!rs.wasNull()) {
