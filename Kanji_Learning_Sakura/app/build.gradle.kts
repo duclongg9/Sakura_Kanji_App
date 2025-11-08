@@ -34,17 +34,10 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
 
-    // Google Sign-In (Credential Manager + Google ID)
-    implementation("androidx.credentials:credentials:1.6.0-beta03")
-    implementation("androidx.credentials:credentials-play-services-auth:1.6.0-beta03")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0") // <-- sửa dòng này
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
-    // HTTP client gọi backend
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
-    // JDBC driver để đăng nhập trực tiếp MySQL
-    testImplementation("mysql:mysql-connector-j:8.0.33")
+    // JDBC driver để đăng nhập trực tiếp MySQL trong ứng dụng
+    implementation("mysql:mysql-connector-j:8.0.33")
 
     // Unit test (JDBC chỉ dùng ở test)
     testImplementation("junit:junit:4.13.2")

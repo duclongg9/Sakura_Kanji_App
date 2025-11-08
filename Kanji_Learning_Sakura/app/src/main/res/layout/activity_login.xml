@@ -44,16 +44,5 @@
             android:layout_marginBottom="16dp"
             android:text="@string/action_login" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="@string/label_or" />
-
-        <Button
-            android:id="@+id/btnGoogle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sign in with Google" />
     </LinearLayout>
 </ScrollView>
