@@ -44,6 +44,9 @@
     <string name="action_start_quiz">Bắt đầu luyện thi</string>
     <string name="title_admin">Quản trị nội dung</string>
     <string name="desc_admin">Thêm level, bài học và Kanji mới cho người học.</string>
+    <string name="dashboard_hero_title">Cùng nở rộ Kanji mỗi ngày</string>
+    <string name="dashboard_hero_subtitle">Lộ trình học cá nhân hoá với sắc hồng Sakura dịu dàng.</string>
+    <string name="dashboard_subtitle">Chọn tính năng để tiếp tục hành trình của bạn.</string>
     <string name="quiz_progress">Câu %1$d/%2$d • Đúng: %3$d</string>
     <string name="quiz_next">Tiếp theo</string>
     <string name="quiz_finish">Hoàn thành</string>

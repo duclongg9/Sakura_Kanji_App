@@ -10,12 +10,19 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/spLevelJlpt"
-            style="@style/Widget.Material3.AutoCompleteTextView.OutlinedBox.Dense"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/hint_select_jlpt"/>
+            android:hint="@string/hint_select_jlpt">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/spLevelJlpt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:importantForAutofill="no"/>
+        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -43,13 +50,20 @@
                 android:hint="@string/hint_level_desc"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/spAccessTier"
-            style="@style/Widget.Material3.AutoCompleteTextView.OutlinedBox.Dense"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="@string/hint_access_tier"/>
+            android:hint="@string/hint_access_tier">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/spAccessTier"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:importantForAutofill="no"/>
+        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/switchActive"
@@ -60,7 +74,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveLevel"
-            style="?attr/materialButtonFilledTonalStyle"
+            style="@style/Widget.Material3.Button.FilledTonal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"

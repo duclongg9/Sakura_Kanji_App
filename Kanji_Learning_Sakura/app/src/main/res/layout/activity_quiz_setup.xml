@@ -6,48 +6,72 @@
     android:background="@color/hanabiWhite"
     android:padding="16dp">
 
-    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-        android:id="@+id/spQuizJlpt"
-        style="@style/Widget.Material3.AutoCompleteTextView.OutlinedBox.Dense"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilQuizJlpt"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="@string/hint_select_jlpt"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-        android:id="@+id/spQuizLevel"
-        style="@style/Widget.Material3.AutoCompleteTextView.OutlinedBox.Dense"
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/spQuizJlpt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:importantForAutofill="no"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilQuizLevel"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:hint="@string/hint_select_level"
-        app:layout_constraintTop_toBottomOf="@id/spQuizJlpt"
+        app:layout_constraintTop_toBottomOf="@id/tilQuizJlpt"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_margin="12dp"/>
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-        android:id="@+id/spLesson"
-        style="@style/Widget.Material3.AutoCompleteTextView.OutlinedBox.Dense"
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/spQuizLevel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:importantForAutofill="no"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilLesson"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:hint="@string/hint_select_lesson"
-        app:layout_constraintTop_toBottomOf="@id/spQuizLevel"
+        app:layout_constraintTop_toBottomOf="@id/tilQuizLevel"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_margin="12dp"/>
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/spLesson"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:importantForAutofill="no"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnStartQuiz"
-        style="?attr/materialButtonFilledTonalStyle"
+        style="@style/Widget.Material3.Button.FilledTonal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/action_start_quiz"
         android:textAllCaps="false"
-        app:layout_constraintTop_toBottomOf="@id/spLesson"
+        app:layout_constraintTop_toBottomOf="@id/tilLesson"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_margin="24dp"/>
+        android:layout_marginTop="24dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

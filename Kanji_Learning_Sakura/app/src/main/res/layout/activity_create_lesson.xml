@@ -10,12 +10,19 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/spLessonLevel"
-            style="@style/Widget.Material3.AutoCompleteTextView.OutlinedBox.Dense"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/hint_select_level"/>
+            android:hint="@string/hint_select_level">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/spLessonLevel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:importantForAutofill="no"/>
+        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -59,7 +66,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveLesson"
-            style="?attr/materialButtonFilledTonalStyle"
+            style="@style/Widget.Material3.Button.FilledTonal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"

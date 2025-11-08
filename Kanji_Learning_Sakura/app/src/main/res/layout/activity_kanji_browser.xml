@@ -6,32 +6,48 @@
     android:padding="16dp"
     android:background="@color/hanabiWhite">
 
-    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-        android:id="@+id/spJlpt"
-        style="@style/Widget.Material3.AutoCompleteTextView.OutlinedBox.Dense"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilJlpt"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="@string/hint_select_jlpt"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-        android:id="@+id/spLevel"
-        style="@style/Widget.Material3.AutoCompleteTextView.OutlinedBox.Dense"
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/spJlpt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:importantForAutofill="no"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilLevel"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:hint="@string/hint_select_level"
-        app:layout_constraintTop_toBottomOf="@id/spJlpt"
+        app:layout_constraintTop_toBottomOf="@id/tilJlpt"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_margin="12dp"/>
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/spLevel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:importantForAutofill="no"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvKanji"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/spLevel"
+        app:layout_constraintTop_toBottomOf="@id/tilLevel"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
