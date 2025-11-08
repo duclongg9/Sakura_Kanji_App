@@ -42,6 +42,14 @@ CREATE TABLE `User` (
   CONSTRAINT fk_user_role FOREIGN KEY (roleId) REFERENCES Role(id)
 ) ENGINE=InnoDB;
 
+-- Seed user mẫu để test đăng nhập local
+INSERT INTO `User` (userName, email, matKhau, roleId)
+VALUES ('admin', 'admin@example.com', '123456', 1)
+ON DUPLICATE KEY UPDATE
+  userName = VALUES(userName),
+  matKhau = VALUES(matKhau),
+  roleId = VALUES(roleId);
+
 -- Level
 DROP TABLE IF EXISTS Level;
 CREATE TABLE Level (
