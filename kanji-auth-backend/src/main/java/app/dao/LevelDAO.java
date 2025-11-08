@@ -1,0 +1,91 @@
+package app.dao;
+
+import app.model.Level;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * DAO cho bảng Level.
+ */
+public class LevelDAO extends BaseDAO {
+
+    private static LocalDateTime toLocalDateTime(Timestamp timestamp) {
+        return timestamp == null ? null : timestamp.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    /**
+     * Lấy danh sách level theo JLPT.
+     */
+    public List<Level> findByJlpt(int jlptId) throws SQLException {
+        final String sql = "SELECT id, name, jlptLevelId, description, isActive, accessTier, createdAt, updatedAt "
+                + "FROM Level WHERE jlptLevelId = ? ORDER BY name";
+        List<Level> levels = new ArrayList<>();
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, jlptId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    levels.add(map(rs));
+                }
+            }
+        }
+        return levels;
+    }
+
+    /**
+     * Thêm level mới.
+     */
+    public Level insert(Level level) throws SQLException {
+        final String sql = "INSERT INTO Level (name, jlptLevelId, description, isActive, accessTier) VALUES (?,?,?,?,?)";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, level.getName());
+            ps.setInt(2, level.getJlptLevelId());
+            ps.setString(3, level.getDescription());
+            ps.setBoolean(4, level.isActive());
+            ps.setString(5, level.getAccessTier());
+            ps.executeUpdate();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    level.setId(keys.getInt(1));
+                }
+            }
+        }
+        return level;
+    }
+
+    public Level findById(int id) throws SQLException {
+        final String sql = "SELECT id, name, jlptLevelId, description, isActive, accessTier, createdAt, updatedAt FROM Level WHERE id = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return map(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    private Level map(ResultSet rs) throws SQLException {
+        Level level = new Level();
+        level.setId(rs.getInt("id"));
+        level.setName(rs.getString("name"));
+        level.setJlptLevelId(rs.getInt("jlptLevelId"));
+        level.setDescription(rs.getString("description"));
+        level.setActive(rs.getBoolean("isActive"));
+        level.setAccessTier(rs.getString("accessTier"));
+        level.setCreatedAt(toLocalDateTime(rs.getTimestamp("createdAt")));
+        level.setUpdatedAt(toLocalDateTime(rs.getTimestamp("updatedAt")));
+        return level;
+    }
+}

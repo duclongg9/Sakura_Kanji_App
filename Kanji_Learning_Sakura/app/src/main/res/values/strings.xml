@@ -12,6 +12,8 @@
     <string name="error_required_password">Vui lòng nhập mật khẩu</string>
     <string name="msg_login_fail">Sai tài khoản hoặc mật khẩu</string>
     <string name="msg_login_success">Đăng nhập thành công! Xin chào %1$s</string>
+    <string name="dashboard_greeting">Xin chào %1$s</string>
+    <string name="action_logout">Đăng xuất</string>
 
     <!-- Thông báo lỗi chung -->
     <string name="msg_network_error">Không kết nối được tới máy chủ. Hãy kiểm tra http://10.0.2.2:9999/kanji-auth-backend</string>
@@ -33,4 +35,45 @@
     <string name="msg_google_fail">Google Sign-In lỗi: %1$s</string>
     <string name="msg_backend_fail">Server trả lỗi: %1$d</string>
     <string name="msg_login_ok">Đăng nhập thành công!</string>
+
+    <!-- Dashboard -->
+    <string name="title_learn_kanji">Học Kanji</string>
+    <string name="desc_learn_kanji">Chọn JLPT và level để xem chữ Kanji kèm phiên âm.</string>
+    <string name="title_quiz">Luyện thi JLPT</string>
+    <string name="desc_quiz">Ôn tập bằng câu hỏi trắc nghiệm theo từng bài học.</string>
+    <string name="action_start_quiz">Bắt đầu luyện thi</string>
+    <string name="title_admin">Quản trị nội dung</string>
+    <string name="desc_admin">Thêm level, bài học và Kanji mới cho người học.</string>
+    <string name="quiz_progress">Câu %1$d/%2$d • Đúng: %3$d</string>
+    <string name="quiz_next">Tiếp theo</string>
+    <string name="quiz_finish">Hoàn thành</string>
+    <string name="quiz_result">Bạn đúng %1$d/%2$d câu!</string>
+    <string name="hint_select_jlpt">Chọn JLPT</string>
+    <string name="hint_select_level">Chọn Level</string>
+    <string name="hint_select_lesson">Chọn Bài học</string>
+    <string name="label_add_level">Thêm Level</string>
+    <string name="label_add_lesson">Thêm bài học</string>
+    <string name="label_save_kanji">Lưu Kanji</string>
+    <string name="hint_kanji_char">Ký tự Kanji</string>
+    <string name="hint_hanviet">Hán Việt</string>
+    <string name="hint_on_reading">Âm On</string>
+    <string name="hint_kun_reading">Âm Kun</string>
+    <string name="hint_description">Mô tả</string>
+    <string name="label_save_level">Lưu Level</string>
+    <string name="label_save_lesson">Lưu bài học</string>
+    <string name="hint_level_name">Tên Level</string>
+    <string name="hint_level_desc">Mô tả</string>
+    <string name="hint_access_tier">Quyền truy cập</string>
+    <string name="label_active">Kích hoạt</string>
+    <string name="hint_lesson_title">Tiêu đề bài học</string>
+    <string name="hint_lesson_overview">Tóm tắt</string>
+    <string name="hint_lesson_order">Thứ tự</string>
+    <string name="toast_choose_lesson">Vui lòng chọn bài học</string>
+    <string name="toast_select_answer">Hãy chọn một đáp án trước đã</string>
+    <string name="toast_correct">Chính xác!</string>
+    <string name="toast_incorrect">Sai mất rồi</string>
+    <string name="toast_no_question">Chưa có câu hỏi cho bài học này</string>
+    <string name="toast_saved_kanji">Đã lưu Kanji %1$s</string>
+    <string name="toast_created_level">Đã tạo level %1$s</string>
+    <string name="toast_created_lesson">Đã tạo bài học %1$s</string>
 </resources>
