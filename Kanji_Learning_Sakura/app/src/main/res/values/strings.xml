@@ -1,11 +1,9 @@
 <resources>
     <string name="app_name">Kanji_Learning_Sakura</string>
-    <string name="web_client_id">748643708301-n2167jrvf5akg0pt79ilai54mslhgqaf.apps.googleusercontent.com</string>
     <string name="backend_base_url">http://10.0.2.2:8080/kanji-app</string>
     <string name="hint_identifier">Email hoặc tên đăng nhập</string>
     <string name="hint_password">Mật khẩu</string>
     <string name="action_login">Đăng nhập</string>
-    <string name="label_or">Hoặc</string>
     <string name="error_required_identifier">Vui lòng nhập email hoặc tên đăng nhập</string>
     <string name="error_required_password">Vui lòng nhập mật khẩu</string>
     <string name="msg_login_fail">Sai tài khoản hoặc mật khẩu</string>
