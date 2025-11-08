@@ -44,7 +44,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // JDBC driver để đăng nhập trực tiếp MySQL
-    implementation("mysql:mysql-connector-j:8.0.33")
+    testImplementation("mysql:mysql-connector-j:8.0.33")
 
     // Unit test (JDBC chỉ dùng ở test)
     testImplementation("junit:junit:4.13.2")
