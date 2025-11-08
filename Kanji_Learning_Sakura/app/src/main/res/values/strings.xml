@@ -1,6 +1,10 @@
 <resources>
-    <string name="app_name">Kanji_Learning_Sakura</string>
-    <string name="backend_base_url">http://10.0.2.2:8080/kanji-app</string>
+    <string name="app_name">SAKURA Kanji</string>
+
+    <!-- Backend base -->
+    <string name="backend_base_url">http://10.0.2.2:9999/kanji-auth-backend</string>
+
+    <!-- Login thường -->
     <string name="hint_identifier">Email hoặc tên đăng nhập</string>
     <string name="hint_password">Mật khẩu</string>
     <string name="action_login">Đăng nhập</string>
@@ -8,9 +12,25 @@
     <string name="error_required_password">Vui lòng nhập mật khẩu</string>
     <string name="msg_login_fail">Sai tài khoản hoặc mật khẩu</string>
     <string name="msg_login_success">Đăng nhập thành công! Xin chào %1$s</string>
-    <string name="msg_network_error">Không kết nối được tới máy chủ. Hãy kiểm tra http://10.0.2.2:8080/kanji-app</string>
+
+    <!-- Thông báo lỗi chung -->
+    <string name="msg_network_error">Không kết nối được tới máy chủ. Hãy kiểm tra http://10.0.2.2:9999/kanji-auth-backend</string>
     <string name="msg_login_fail_http">Đăng nhập thất bại (%1$d): %2$s</string>
     <string name="msg_login_fail_unknown">Máy chủ trả về lỗi không xác định</string>
     <string name="msg_unexpected_error">Đăng nhập thất bại do lỗi không xác định</string>
 
+    <!-- Màn chào + Login Google -->
+    <string name="welcome_title">SAKURA\nKANJI APP</string>
+    <string name="welcome_sub">chào cậu, chúc cậu học Kanji thật vui cùng Hoa nha</string>
+    <string name="btn_continue">Bắt đầu</string>
+    <string name="login_hint">Cậu đăng nhập nhaaa!</string>
+    <string name="btn_login_google">Login with Google</string>
+
+    <!-- Google Sign-In -->
+    <!-- Thay bằng OAuth 2.0 Web Client ID thật của bạn -->
+    <string name="web_client_id">748643708301-n2167jrvf5akg0pt79ilai54mslhgqaf.apps.googleusercontent.com</string>
+    <string name="msg_google_cancel">Đăng nhập Google bị hủy</string>
+    <string name="msg_google_fail">Google Sign-In lỗi: %1$s</string>
+    <string name="msg_backend_fail">Server trả lỗi: %1$d</string>
+    <string name="msg_login_ok">Đăng nhập thành công!</string>
 </resources>

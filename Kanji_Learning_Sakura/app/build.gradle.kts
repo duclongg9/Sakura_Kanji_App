@@ -36,6 +36,10 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    // API google
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    //okHttp backend
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // JDBC driver để đăng nhập trực tiếp MySQL trong ứng dụng
     testRuntimeOnly("mysql:mysql-connector-java:8.0.33")

@@ -14,13 +14,13 @@ public class UserDAO extends BaseDAO {
     }
     private static final String LOGIN_SQL =
             "SELECT id, userName, email, imgUrl, matKhau, roleId, createdAt, updatedAt " +
-                    "FROM `User` WHERE (LOWER(email) = LOWER(?) OR LOWER(userName) = LOWER(?)) " +
+                    "FROM `User` WHERE (LOWER(email) = LOWER(?)) " +
                     "AND matKhau = ? LIMIT 1";
 
     /**
      * Thử đăng nhập bằng email/username và mật khẩu.
      *
-     * @param identifier email hoặc tên đăng nhập người dùng nhập.
+     * @param identifier email người dùng nhập.
      * @param password   mật khẩu dạng plain-text (khớp với cột {@code matKhau}).
      * @return {@link User} nếu thông tin hợp lệ, {@code null} nếu sai.
      * @throws SQLException           lỗi khi truy vấn CSDL.
@@ -30,8 +30,7 @@ public class UserDAO extends BaseDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(LOGIN_SQL)) {
             ps.setString(1, identifier);
-            ps.setString(2, identifier);
-            ps.setString(3, password);
+            ps.setString(2, password);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapRow(rs);
