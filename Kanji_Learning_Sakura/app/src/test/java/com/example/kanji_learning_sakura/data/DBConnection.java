@@ -1,18 +1,21 @@
-package com.example.kanji_learning_sakura.infra;
+package com.example.kanji_learning_sakura.data;
 
 import com.example.kanji_learning_sakura.config.DBConfig;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-/** Cấp kết nối JDBC dùng DriverManager (đơn giản, đủ cho môn học) */
+/**
+ * Tiện ích JDBC chỉ sử dụng trong test để thao tác với cơ sở dữ liệu mẫu.
+ */
 public final class DBConnection {
     private static volatile boolean driverLoaded = false;
 
     private DBConnection() {}
 
-    /** Lấy 1 kết nối mới; dùng try-with-resources ở nơi gọi để tự đóng. */
+    /**
+     * Mở một kết nối JDBC mới tới cấu hình trong {@link DBConfig}.
+     */
     public static Connection getConnection() throws SQLException {
         loadDriverIfNeeded();
         return DriverManager.getConnection(
@@ -22,17 +25,20 @@ public final class DBConnection {
         );
     }
 
-    /** Ping nhanh để kiểm tra cấu hình đúng hay chưa. */
+    /**
+     * Kiểm tra nhanh khả năng kết nối đến cơ sở dữ liệu MySQL.
+     */
     public static boolean ping() {
         try (Connection c = getConnection()) {
             return c.isValid(2);
-        } catch (Exception e) {         // SQLException + mọi lỗi khác
-            System.err.println("[DB][PING] " + e.getClass().getName() + ": " + e.getMessage());
-            e.printStackTrace();        // in full stacktrace ra console
+        } catch (SQLException e) {
             return false;
         }
     }
 
+    /**
+     * Đảm bảo driver MySQL được nạp trước khi tạo kết nối.
+     */
     private static void loadDriverIfNeeded() {
         if (!driverLoaded) {
             synchronized (DBConnection.class) {
@@ -41,7 +47,7 @@ public final class DBConnection {
                         Class.forName(DBConfig.DRIVER);
                         driverLoaded = true;
                     } catch (ClassNotFoundException e) {
-                        throw new IllegalStateException("MySQL Driver không tìm thấy. Đã thêm dependency chưa?", e);
+                        throw new IllegalStateException("Không tìm thấy MySQL Driver. Đã thêm dependency chưa?", e);
                     }
                 }
             }
