@@ -1,21 +1,31 @@
 package com.example.kanji_learning_sakura.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.kanji_learning_sakura.R;
 import com.example.kanji_learning_sakura.config.AuthPrefs;
-import com.example.kanji_learning_sakura.data.dao.UserDAO;
-import com.example.kanji_learning_sakura.model.User;
+import com.example.kanji_learning_sakura.core.ApiClient;
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.sql.SQLException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private UserDAO userDAO;
+    private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+
     private AuthPrefs authPrefs;
     private TextInputEditText edtIdentifier;
     private TextInputEditText edtPassword;
@@ -25,20 +35,19 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_login);
-        userDAO = new UserDAO();
         authPrefs = new AuthPrefs(this);
 
         edtIdentifier = findViewById(R.id.edtIdentifier);
         edtPassword = findViewById(R.id.edtPassword);
         btnLocalLogin = findViewById(R.id.btnLogin);
 
-        btnLocalLogin.setOnClickListener(v -> attemptLocalLogin());
+        btnLocalLogin.setOnClickListener(v -> attemptBackendLogin());
     }
 
     /**
-     * Đăng nhập tài khoản local từ MySQL bằng JDBC.
+     * Gửi yêu cầu đăng nhập tới backend qua HTTP.
      */
-    private void attemptLocalLogin() {
+    private void attemptBackendLogin() {
         String identifier = textOf(edtIdentifier);
         String password = textOf(edtPassword);
 
@@ -57,27 +66,26 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         setLoadingState(true);
+        String baseUrl = ApiClient.baseUrl(this);
         new Thread(() -> {
             try {
-                User user = userDAO.authenticate(identifier, password);
+                OkHttpClient client = ApiClient.get(getApplicationContext());
+                JSONObject jsonBody = new JSONObject()
+                        .put("email", identifier)
+                        .put("password", password);
+
+                Request request = new Request.Builder()
+                        .url(baseUrl + "/api/auth/login")
+                        .post(RequestBody.create(jsonBody.toString(), JSON))
+                        .build();
+
+                try (Response response = client.newCall(request).execute()) {
+                    handleLoginResponse(identifier, response);
+                }
+            } catch (IOException ioe) {
                 runOnUiThread(() -> {
                     setLoadingState(false);
-                    if (user == null) {
-                        toast(getString(R.string.msg_login_fail));
-                    } else {
-                        authPrefs.saveLocalUser(user);
-                        toast(getString(R.string.msg_login_success, user.getUserName()));
-                    }
-                });
-            } catch (ClassNotFoundException e) {
-                runOnUiThread(() -> {
-                    setLoadingState(false);
-                    toast(getString(R.string.msg_driver_missing));
-                });
-            } catch (SQLException e) {
-                runOnUiThread(() -> {
-                    setLoadingState(false);
-                    toast(getString(R.string.msg_db_error, e.getMessage()));
+                    toast(getString(R.string.msg_network_error));
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {
@@ -86,6 +94,38 @@ public class LoginActivity extends AppCompatActivity {
                 });
             }
         }).start();
+    }
+
+    /**
+     * Phản hồi kết quả đăng nhập từ backend.
+     */
+    private void handleLoginResponse(String identifier, Response response) throws Exception {
+        if (!response.isSuccessful()) {
+            String body = response.body() != null ? response.body().string() : "";
+            String detail = body.isEmpty() ? getString(R.string.msg_login_fail_unknown) : body;
+            runOnUiThread(() -> {
+                setLoadingState(false);
+                if (response.code() == 401) {
+                    toast(getString(R.string.msg_login_fail));
+                } else {
+                    toast(getString(R.string.msg_login_fail_http, response.code(), detail));
+                }
+            });
+            return;
+        }
+
+        JSONObject payload = new JSONObject(response.body() != null ? response.body().string() : "{}");
+        String token = payload.optString("token", null);
+        int roleId = payload.optInt("roleId", 2);
+
+        authPrefs.save(token, roleId);
+
+        runOnUiThread(() -> {
+            setLoadingState(false);
+            toast(getString(R.string.msg_login_success, identifier));
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+        });
     }
 
     /**

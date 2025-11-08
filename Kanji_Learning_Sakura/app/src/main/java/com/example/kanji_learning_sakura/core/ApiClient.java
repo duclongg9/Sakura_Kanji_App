@@ -1,7 +1,10 @@
 package com.example.kanji_learning_sakura.core;
 
 import android.content.Context;
+import java.util.concurrent.TimeUnit;
+
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 public final class ApiClient {
     private ApiClient() {}
@@ -10,11 +13,21 @@ public final class ApiClient {
     /** OkHttp có AuthInterceptor gắn JWT tự động */
     public static OkHttpClient get(Context ctx) {
         if (client == null) {
-            // dùng applicationContext để tránh leak
-            Context appCtx = ctx.getApplicationContext();
-            client = new OkHttpClient.Builder()
-                    .addInterceptor(new AuthInterceptor(appCtx))
-                    .build();
+            synchronized (ApiClient.class) {
+                if (client == null) {
+                    // dùng applicationContext để tránh leak
+                    Context appCtx = ctx.getApplicationContext();
+                    HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+                    logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+                    client = new OkHttpClient.Builder()
+                            .addInterceptor(new AuthInterceptor(appCtx))
+                            .addInterceptor(logging)
+                            .connectTimeout(15, TimeUnit.SECONDS)
+                            .readTimeout(20, TimeUnit.SECONDS)
+                            .build();
+                }
+            }
         }
         return client;
     }

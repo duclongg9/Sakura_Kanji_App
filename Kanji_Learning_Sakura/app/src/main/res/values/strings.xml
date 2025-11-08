@@ -8,8 +8,9 @@
     <string name="error_required_password">Vui lòng nhập mật khẩu</string>
     <string name="msg_login_fail">Sai tài khoản hoặc mật khẩu</string>
     <string name="msg_login_success">Đăng nhập thành công! Xin chào %1$s</string>
-    <string name="msg_driver_missing">Thiếu driver MySQL, hãy kiểm tra dependency mysql-connector-j</string>
-    <string name="msg_db_error">Không thể kết nối CSDL: %1$s</string>
+    <string name="msg_network_error">Không kết nối được tới máy chủ. Hãy kiểm tra http://10.0.2.2:8080/kanji-app</string>
+    <string name="msg_login_fail_http">Đăng nhập thất bại (%1$d): %2$s</string>
+    <string name="msg_login_fail_unknown">Máy chủ trả về lỗi không xác định</string>
     <string name="msg_unexpected_error">Đăng nhập thất bại do lỗi không xác định</string>
 
 </resources>

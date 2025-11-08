@@ -1,10 +1,13 @@
 package com.example.kanji_learning_sakura;
 
-import com.example.kanji_learning_sakura.infra.DBConnection;
+import com.example.kanji_learning_sakura.data.DBConnection;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Kiểm thử kết nối JDBC dành cho môi trường phát triển.
+ */
 public class DbPingTest {
 
     @Test
@@ -14,7 +17,6 @@ public class DbPingTest {
         boolean ok = DBConnection.ping();
         System.out.println(ok ? "[DB] ✅ Kết nối thành công!" : "[DB] ❌ Kết nối thất bại!");
         assertTrue("Ping DB thất bại", ok);
-
-        }
     }
+}
 
