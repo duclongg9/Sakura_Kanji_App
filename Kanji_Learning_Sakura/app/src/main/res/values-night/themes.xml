@@ -17,7 +17,7 @@
         <item name="android:windowLightNavigationBar">false</item>
         <item name="materialCardViewStyle">@style/Widget.Material3.CardView.Elevated</item>
         <item name="materialButtonOutlinedStyle">@style/Widget.Material3.Button.Outlined</item>
-        <item name="materialButtonFilledTonalStyle">@style/Widget.Material3.Button.FilledTonal</item>
+        <!-- Sử dụng style tương thích Material3 đã định nghĩa riêng cho MaterialButton. -->
         <item name="materialButtonStyle">@style/Widget.Material3.Button.Elevated</item>
     </style>
 </resources>
