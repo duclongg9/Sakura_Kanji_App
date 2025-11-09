@@ -2,18 +2,22 @@ package com.example.kanji_learning_sakura.core;
 
 import android.content.Context;
 import com.example.kanji_learning_sakura.model.AuthResponseDto;
+import com.example.kanji_learning_sakura.model.BulkImportReportDto;
+import com.example.kanji_learning_sakura.model.BulkImportReportDto.RowError;
 import com.example.kanji_learning_sakura.model.JlptLevelDto;
 import com.example.kanji_learning_sakura.model.KanjiDto;
 import com.example.kanji_learning_sakura.model.LessonDto;
 import com.example.kanji_learning_sakura.model.LevelDto;
+import com.example.kanji_learning_sakura.model.MomoPaymentDto;
+import com.example.kanji_learning_sakura.model.MomoPaymentStatusDto;
 import com.example.kanji_learning_sakura.model.ProfileDto;
 import com.example.kanji_learning_sakura.model.QuizChoiceDto;
 import com.example.kanji_learning_sakura.model.QuizQuestionDto;
-import com.example.kanji_learning_sakura.model.UpgradeRequestDto;
-import com.example.kanji_learning_sakura.model.WalletDepositDto;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -136,77 +140,6 @@ public class KanjiService {
     }
 
     /**
-     * Gửi yêu cầu nâng cấp tài khoản lên VIP.
-     *
-     * @param note ghi chú của người dùng.
-     * @return {@link UpgradeRequestDto} phản hồi từ backend.
-     * @throws Exception nếu request thất bại.
-     */
-    public UpgradeRequestDto createUpgradeRequest(String note) throws Exception {
-        JSONObject payload = new JSONObject();
-        if (note != null) {
-            payload.put("note", note);
-        }
-        Request request = new Request.Builder()
-                .url(baseUrl + "/api/account/upgrade-requests")
-                .post(RequestBody.create(payload.toString(), JSON))
-                .build();
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IllegalStateException("HTTP " + response.code());
-            }
-            JSONObject obj = new JSONObject(response.body() != null ? response.body().string() : "{}");
-            UpgradeRequestDto dto = new UpgradeRequestDto();
-            dto.setRequestId(obj.optLong("requestId"));
-            dto.setStatus(obj.optString("status"));
-            dto.setNote(obj.optString("note", null));
-            dto.setTargetRoleId(obj.optInt("targetRoleId"));
-            dto.setCreatedAt(obj.optString("createdAt", null));
-            return dto;
-        }
-    }
-
-    /**
-     * Khởi tạo giao dịch nạp tiền và nhận về QR code tương ứng.
-     *
-     * @param amount số tiền muốn nạp.
-     * @return {@link WalletDepositDto} chứa thông tin QR.
-     * @throws Exception nếu request thất bại.
-     */
-    public WalletDepositDto createDeposit(double amount) throws Exception {
-        JSONObject payload = new JSONObject().put("amount", amount);
-        Request request = new Request.Builder()
-                .url(baseUrl + "/api/wallet/deposits")
-                .post(RequestBody.create(payload.toString(), JSON))
-                .build();
-        try (Response response = client.newCall(request).execute()) {
-            String body = response.body() != null ? response.body().string() : "";
-            if (!response.isSuccessful()) {
-                String message = "HTTP " + response.code();
-                if (body != null && !body.isEmpty()) {
-                    try {
-                        JSONObject error = new JSONObject(body);
-                        if (error.has("error")) {
-                            message = error.optString("error", message);
-                        }
-                    } catch (Exception ignored) {
-                        message = body;
-                    }
-                }
-                throw new IllegalStateException(message);
-            }
-            JSONObject obj = new JSONObject(body.isEmpty() ? "{}" : body);
-            WalletDepositDto dto = new WalletDepositDto();
-            dto.setDepositId(obj.optLong("depositId"));
-            dto.setAmount(obj.optDouble("amount"));
-            dto.setStatus(obj.optString("status"));
-            dto.setQrCodeUrl(obj.optString("qrCodeUrl"));
-            dto.setCreatedAt(obj.optString("createdAt", null));
-            return dto;
-        }
-    }
-
-    /**
      * Lấy danh sách JLPT level có trong hệ thống.
      *
      * @return danh sách DTO JLPT.
@@ -247,10 +180,8 @@ public class KanjiService {
                 .get()
                 .build();
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IllegalStateException("HTTP " + response.code());
-            }
-            JSONArray array = new JSONArray(response.body() != null ? response.body().string() : "[]");
+            String body = readBodyOrThrow(response);
+            JSONArray array = new JSONArray(body.isBlank() ? "[]" : body);
             List<LevelDto> result = new ArrayList<>();
             for (int i = 0; i < array.length(); i++) {
                 JSONObject obj = array.getJSONObject(i);
@@ -290,10 +221,8 @@ public class KanjiService {
                 .post(RequestBody.create(payload.toString(), JSON))
                 .build();
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IllegalStateException("HTTP " + response.code());
-            }
-            JSONObject obj = new JSONObject(response.body() != null ? response.body().string() : "{}");
+            String body = readBodyOrThrow(response);
+            JSONObject obj = new JSONObject(body.isBlank() ? "{}" : body);
             LevelDto dto = new LevelDto();
             dto.setId(obj.optInt("id"));
             dto.setName(obj.optString("name"));
@@ -302,6 +231,64 @@ public class KanjiService {
             dto.setAccessTier(obj.optString("accessTier", "FREE"));
             dto.setActive(obj.optBoolean("active", true));
             return dto;
+        }
+    }
+
+    /**
+     * Cập nhật một level đã tồn tại.
+     *
+     * @param id          mã level cần chỉnh sửa.
+     * @param name        tên mới của level.
+     * @param jlptId      liên kết JLPT.
+     * @param description mô tả (có thể null để xóa).
+     * @param accessTier  quyền truy cập.
+     * @param active      trạng thái hoạt động.
+     * @return level sau khi cập nhật.
+     * @throws Exception nếu request thất bại.
+     */
+    public LevelDto updateLevel(int id, String name, int jlptId, String description, String accessTier, boolean active) throws Exception {
+        JSONObject payload = new JSONObject()
+                .put("id", id)
+                .put("name", name)
+                .put("jlptLevelId", jlptId)
+                .put("accessTier", accessTier)
+                .put("active", active);
+        if (description != null) {
+            payload.put("description", description);
+        } else {
+            payload.put("description", JSONObject.NULL);
+        }
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/levels")
+                .put(RequestBody.create(payload.toString(), JSON))
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String body = readBodyOrThrow(response);
+            JSONObject obj = new JSONObject(body.isBlank() ? "{}" : body);
+            LevelDto dto = new LevelDto();
+            dto.setId(obj.optInt("id"));
+            dto.setName(obj.optString("name"));
+            dto.setJlptLevelId(obj.optInt("jlptLevelId"));
+            dto.setDescription(obj.isNull("description") ? null : obj.optString("description", null));
+            dto.setAccessTier(obj.optString("accessTier", "FREE"));
+            dto.setActive(obj.optBoolean("active", true));
+            return dto;
+        }
+    }
+
+    /**
+     * Xóa level khỏi hệ thống.
+     *
+     * @param id khóa chính cần xóa.
+     * @throws Exception nếu request thất bại.
+     */
+    public void deleteLevel(int id) throws Exception {
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/levels?id=" + id)
+                .delete()
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            readBodyOrThrow(response);
         }
     }
 
@@ -335,10 +322,8 @@ public class KanjiService {
                 .post(RequestBody.create(payload.toString(), JSON))
                 .build();
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IllegalStateException("HTTP " + response.code());
-            }
-            JSONObject obj = new JSONObject(response.body() != null ? response.body().string() : "{}");
+            String body = readBodyOrThrow(response);
+            JSONObject obj = new JSONObject(body.isBlank() ? "{}" : body);
             KanjiDto dto = new KanjiDto();
             dto.setId(obj.optLong("id"));
             dto.setCharacter(obj.optString("character"));
@@ -348,6 +333,111 @@ public class KanjiService {
             dto.setDescription(obj.optString("description", null));
             if (!obj.isNull("levelId")) {
                 dto.setLevelId(obj.optInt("levelId"));
+            }
+            return dto;
+        }
+    }
+
+    /**
+     * Cập nhật Kanji đã tồn tại.
+     *
+     * @param id          khóa chính Kanji.
+     * @param character   ký tự hiển thị.
+     * @param hanViet     âm Hán Việt.
+     * @param onReading   âm On.
+     * @param kunReading  âm Kun.
+     * @param description mô tả chi tiết.
+     * @param levelId     level gắn với Kanji (có thể null).
+     * @return DTO sau khi cập nhật.
+     * @throws Exception nếu request thất bại.
+     */
+    public KanjiDto updateKanji(long id, String character, String hanViet, String onReading, String kunReading,
+                                String description, Integer levelId) throws Exception {
+        JSONObject payload = new JSONObject()
+                .put("id", id)
+                .put("character", character)
+                .put("hanViet", hanViet)
+                .put("onReading", onReading)
+                .put("kunReading", kunReading)
+                .put("description", description);
+        if (levelId == null) {
+            payload.put("levelId", JSONObject.NULL);
+        } else {
+            payload.put("levelId", levelId);
+        }
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/kanji")
+                .put(RequestBody.create(payload.toString(), JSON))
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String body = readBodyOrThrow(response);
+            JSONObject obj = new JSONObject(body.isBlank() ? "{}" : body);
+            KanjiDto dto = new KanjiDto();
+            dto.setId(obj.optLong("id"));
+            dto.setCharacter(obj.optString("character"));
+            dto.setHanViet(obj.optString("hanViet", null));
+            dto.setOnReading(obj.optString("onReading", null));
+            dto.setKunReading(obj.optString("kunReading", null));
+            dto.setDescription(obj.optString("description", null));
+            if (!obj.isNull("levelId")) {
+                dto.setLevelId(obj.optInt("levelId"));
+            }
+            return dto;
+        }
+    }
+
+    /**
+     * Xóa Kanji.
+     *
+     * @param id khóa chính cần xóa.
+     * @throws Exception nếu request thất bại.
+     */
+    public void deleteKanji(long id) throws Exception {
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/kanji?id=" + id)
+                .delete()
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            readBodyOrThrow(response);
+        }
+    }
+
+    /**
+     * Import hàng loạt Kanji và câu hỏi từ tệp CSV.
+     *
+     * @param data     byte array nội dung CSV.
+     * @param fileName tên tệp hiển thị cho backend.
+     * @return báo cáo chi tiết số bản ghi xử lý và lỗi.
+     * @throws Exception nếu request thất bại.
+     */
+    public BulkImportReportDto importKanjiCsv(byte[] data, String fileName) throws Exception {
+        MultipartBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file", fileName != null ? fileName : "kanji.csv",
+                        RequestBody.create(data, MediaType.parse("text/csv")))
+                .build();
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/kanji/import")
+                .post(requestBody)
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String body = readBodyOrThrow(response);
+            JSONObject obj = new JSONObject(body.isBlank() ? "{}" : body);
+            BulkImportReportDto dto = new BulkImportReportDto();
+            dto.setTotalRows(obj.optInt("totalRows"));
+            dto.setKanjiInserted(obj.optInt("kanjiInserted"));
+            dto.setKanjiUpdated(obj.optInt("kanjiUpdated"));
+            dto.setQuestionsCreated(obj.optInt("questionsCreated"));
+            dto.setChoicesCreated(obj.optInt("choicesCreated"));
+            JSONArray errors = obj.optJSONArray("errors");
+            if (errors != null) {
+                for (int i = 0; i < errors.length(); i++) {
+                    JSONObject e = errors.getJSONObject(i);
+                    RowError error = new RowError();
+                    error.setRowNumber(e.optInt("rowNumber"));
+                    error.setMessage(e.optString("message"));
+                    dto.getErrors().add(error);
+                }
             }
             return dto;
         }
@@ -366,10 +456,8 @@ public class KanjiService {
                 .get()
                 .build();
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IllegalStateException("HTTP " + response.code());
-            }
-            JSONArray array = new JSONArray(response.body() != null ? response.body().string() : "[]");
+            String body = readBodyOrThrow(response);
+            JSONArray array = new JSONArray(body.isBlank() ? "[]" : body);
             List<KanjiDto> result = new ArrayList<>();
             for (int i = 0; i < array.length(); i++) {
                 JSONObject obj = array.getJSONObject(i);
@@ -402,10 +490,8 @@ public class KanjiService {
                 .get()
                 .build();
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IllegalStateException("HTTP " + response.code());
-            }
-            JSONArray array = new JSONArray(response.body() != null ? response.body().string() : "[]");
+            String body = readBodyOrThrow(response);
+            JSONArray array = new JSONArray(body.isBlank() ? "[]" : body);
             List<LessonDto> result = new ArrayList<>();
             for (int i = 0; i < array.length(); i++) {
                 JSONObject obj = array.getJSONObject(i);
@@ -442,10 +528,8 @@ public class KanjiService {
                 .post(RequestBody.create(payload.toString(), JSON))
                 .build();
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IllegalStateException("HTTP " + response.code());
-            }
-            JSONObject obj = new JSONObject(response.body() != null ? response.body().string() : "{}");
+            String body = readBodyOrThrow(response);
+            JSONObject obj = new JSONObject(body.isBlank() ? "{}" : body);
             LessonDto dto = new LessonDto();
             dto.setLessonId(obj.optLong("lessonId"));
             dto.setLevelId(obj.optInt("levelId"));
@@ -453,6 +537,57 @@ public class KanjiService {
             dto.setOverview(obj.optString("overview", null));
             dto.setOrderIndex(obj.optInt("orderIndex"));
             return dto;
+        }
+    }
+
+    /**
+     * Cập nhật nội dung bài học.
+     *
+     * @param lessonId   khóa chính bài học.
+     * @param levelId    level chứa bài học.
+     * @param title      tiêu đề.
+     * @param overview   mô tả tổng quan.
+     * @param orderIndex thứ tự hiển thị.
+     * @return {@link LessonDto} mới nhất.
+     * @throws Exception nếu request thất bại.
+     */
+    public LessonDto updateLesson(long lessonId, int levelId, String title, String overview, int orderIndex) throws Exception {
+        JSONObject payload = new JSONObject()
+                .put("lessonId", lessonId)
+                .put("levelId", levelId)
+                .put("title", title)
+                .put("overview", overview)
+                .put("orderIndex", orderIndex);
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/lessons")
+                .put(RequestBody.create(payload.toString(), JSON))
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String body = readBodyOrThrow(response);
+            JSONObject obj = new JSONObject(body.isBlank() ? "{}" : body);
+            LessonDto dto = new LessonDto();
+            dto.setLessonId(obj.optLong("lessonId"));
+            dto.setLevelId(obj.optInt("levelId"));
+            dto.setTitle(obj.optString("title"));
+            dto.setOverview(obj.optString("overview", null));
+            dto.setOrderIndex(obj.optInt("orderIndex"));
+            return dto;
+        }
+    }
+
+    /**
+     * Xóa bài học khỏi hệ thống.
+     *
+     * @param lessonId khóa chính cần xóa.
+     * @throws Exception nếu request thất bại.
+     */
+    public void deleteLesson(long lessonId) throws Exception {
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/lessons?lessonId=" + lessonId)
+                .delete()
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            readBodyOrThrow(response);
         }
     }
 
@@ -469,10 +604,8 @@ public class KanjiService {
                 .get()
                 .build();
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IllegalStateException("HTTP " + response.code());
-            }
-            JSONArray array = new JSONArray(response.body() != null ? response.body().string() : "[]");
+            String body = readBodyOrThrow(response);
+            JSONArray array = new JSONArray(body.isBlank() ? "[]" : body);
             List<QuizQuestionDto> result = new ArrayList<>();
             for (int i = 0; i < array.length(); i++) {
                 JSONObject obj = array.getJSONObject(i);
@@ -498,6 +631,96 @@ public class KanjiService {
                 result.add(dto);
             }
             return result;
+        }
+    }
+
+    /**
+     * Tạo yêu cầu thanh toán MoMo cho gói VIP.
+     *
+     * @param planCode mã gói VIP (VIP_MONTHLY, VIP_QUARTERLY, VIP_YEARLY).
+     * @return thông tin đơn hàng và URL thanh toán.
+     * @throws Exception nếu request thất bại.
+     */
+    public MomoPaymentDto createMomoVipPayment(String planCode) throws Exception {
+        JSONObject payload = new JSONObject();
+        if (planCode != null && !planCode.isEmpty()) {
+            payload.put("planCode", planCode);
+        }
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/payments/momo")
+                .post(RequestBody.create(payload.toString(), JSON))
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String body = readBodyOrThrow(response);
+            JSONObject obj = new JSONObject(body.isBlank() ? "{}" : body);
+            MomoPaymentDto dto = new MomoPaymentDto();
+            dto.setOrderId(obj.optString("orderId"));
+            dto.setRequestId(obj.optString("requestId"));
+            dto.setPlanCode(obj.optString("planCode"));
+            dto.setAmount(obj.optDouble("amount"));
+            dto.setPayUrl(obj.optString("payUrl", null));
+            dto.setDeeplink(obj.optString("deeplink", null));
+            dto.setStatus(obj.optString("status", null));
+            dto.setStubMode(obj.optBoolean("stubMode", false));
+            return dto;
+        }
+    }
+
+    /**
+     * Kiểm tra trạng thái thanh toán MoMo.
+     *
+     * @param orderId mã đơn hàng trả về từ {@link #createMomoVipPayment(String)}.
+     * @return trạng thái hiện tại của giao dịch.
+     * @throws Exception nếu request thất bại.
+     */
+    public MomoPaymentStatusDto getMomoPaymentStatus(String orderId) throws Exception {
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/payments/momo?orderId=" + orderId)
+                .get()
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String body = readBodyOrThrow(response);
+            JSONObject obj = new JSONObject(body.isBlank() ? "{}" : body);
+            MomoPaymentStatusDto dto = new MomoPaymentStatusDto();
+            dto.setOrderId(obj.optString("orderId"));
+            dto.setPlanCode(obj.optString("planCode"));
+            dto.setStatus(obj.optString("status"));
+            dto.setAmount(obj.optDouble("amount"));
+            dto.setPayUrl(obj.optString("payUrl", null));
+            dto.setDeeplink(obj.optString("deeplink", null));
+            if (!obj.isNull("resultCode")) {
+                dto.setResultCode(obj.optInt("resultCode"));
+            }
+            dto.setMessage(obj.isNull("message") ? null : obj.optString("message", null));
+            dto.setVipActivated(obj.optBoolean("vipActivated", false));
+            dto.setVipExpiresAt(obj.isNull("vipExpiresAt") ? null : obj.optString("vipExpiresAt", null));
+            return dto;
+        }
+    }
+
+    private String readBodyOrThrow(Response response) throws IOException {
+        String body = response.body() != null ? response.body().string() : "";
+        if (!response.isSuccessful()) {
+            throw new IllegalStateException(extractErrorMessage(response.code(), body));
+        }
+        return body;
+    }
+
+    private String extractErrorMessage(int statusCode, String body) {
+        String defaultMessage = "HTTP " + statusCode;
+        if (body == null || body.isBlank()) {
+            return defaultMessage;
+        }
+        try {
+            JSONObject json = new JSONObject(body);
+            String message = json.optString("message", json.optString("error", defaultMessage));
+            JSONObject details = json.optJSONObject("details");
+            if (details != null && details.length() > 0) {
+                message = message + " - " + details.toString();
+            }
+            return message;
+        } catch (Exception ignored) {
+            return body;
         }
     }
 }

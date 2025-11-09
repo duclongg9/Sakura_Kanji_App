@@ -317,3 +317,25 @@ VALUES
   (3, (SELECT id FROM `User` WHERE email = 'minh.student@example.com'), 150000, 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MINH-TOPUP-150K', 'PENDING')
 ON DUPLICATE KEY UPDATE
   status = VALUES(status);
+
+-- Giao dịch thanh toán MoMo
+DROP TABLE IF EXISTS MomoPayment;
+CREATE TABLE MomoPayment (
+    payment_id  BIGINT        NOT NULL AUTO_INCREMENT,
+    user_id     BIGINT        NOT NULL,
+    amount      DECIMAL(12,2) NOT NULL,
+    plan_code   VARCHAR(40)   NOT NULL,
+    order_id    VARCHAR(64)   NOT NULL,
+    request_id  VARCHAR(64)   NOT NULL,
+    status      ENUM('PENDING','SUCCESS','FAILED') NOT NULL DEFAULT 'PENDING',
+    payUrl      TEXT          NULL,
+    deeplink    TEXT          NULL,
+    resultCode  INT           NULL,
+    message     VARCHAR(255)  NULL,
+    momoTransId VARCHAR(64)   NULL,
+    createdAt   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (payment_id),
+    UNIQUE KEY uq_momo_order (order_id),
+    CONSTRAINT fk_momo_user FOREIGN KEY (user_id) REFERENCES `User`(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

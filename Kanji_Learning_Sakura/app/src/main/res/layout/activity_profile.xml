@@ -149,27 +149,18 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnUpgrade"
-                style="@style/Widget.Material3.Button.Filled"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="@string/profile_upgrade"
-                android:textAllCaps="false"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUpgrade"
+            style="@style/Widget.Material3.Button.Filled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="@string/profile_upgrade"
+            android:textAllCaps="false"/>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDeposit"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="@string/profile_deposit"
-                android:textAllCaps="false"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLogoutProfile"
-                style="@style/Widget.Material3.Button.TonalButton"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogoutProfile"
+            style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/profile_logout"

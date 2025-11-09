@@ -112,6 +112,27 @@ public class UserDAO extends BaseDAO {
         return null;
     }
 
+    /**
+     * Nâng cấp tài khoản lên VIP và cập nhật thời gian hết hạn.
+     *
+     * @param userId    người dùng cần nâng cấp.
+     * @param expiresAt thời điểm VIP hết hạn.
+     * @throws SQLException nếu thao tác cập nhật thất bại.
+     */
+    public void upgradeToVip(long userId, LocalDateTime expiresAt) throws SQLException {
+        final String sql = "UPDATE `User` SET roleId = 3, accountTier = 'VIP', vipExpiresAt = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            if (expiresAt == null) {
+                ps.setNull(1, java.sql.Types.TIMESTAMP);
+            } else {
+                ps.setTimestamp(1, Timestamp.valueOf(expiresAt));
+            }
+            ps.setLong(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
     private User mapUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setId(rs.getLong("id"));

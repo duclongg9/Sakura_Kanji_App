@@ -1,7 +1,10 @@
 package com.example.kanji_learning_sakura.ui;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
@@ -9,12 +12,16 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.kanji_learning_sakura.R;
 import com.example.kanji_learning_sakura.core.KanjiService;
+import com.example.kanji_learning_sakura.model.BulkImportReportDto;
 import com.example.kanji_learning_sakura.model.JlptLevelDto;
 import com.example.kanji_learning_sakura.model.KanjiDto;
 import com.example.kanji_learning_sakura.model.LevelDto;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +44,9 @@ public class AdminKanjiActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> refreshLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> reloadLevels());
 
+    private final ActivityResultLauncher<String> csvPicker =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), this::onCsvPicked);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +63,7 @@ public class AdminKanjiActivity extends AppCompatActivity {
         MaterialButton btnSave = findViewById(R.id.btnSaveKanji);
         MaterialButton btnCreateLevel = findViewById(R.id.btnCreateLevel);
         MaterialButton btnCreateLesson = findViewById(R.id.btnCreateLesson);
+        MaterialButton btnImportCsv = findViewById(R.id.btnImportCsv);
 
         loadJlpt();
 
@@ -81,6 +92,7 @@ public class AdminKanjiActivity extends AppCompatActivity {
             intent.putExtra(CreateLessonActivity.EXTRA_LEVEL_ID, selected.getId());
             refreshLauncher.launch(intent);
         });
+        btnImportCsv.setOnClickListener(v -> csvPicker.launch("text/*"));
     }
 
     private void loadJlpt() {
@@ -162,6 +174,93 @@ public class AdminKanjiActivity extends AppCompatActivity {
                 runOnUiThread(() -> toast(ex.getMessage()));
             }
         }).start();
+    }
+
+    private void onCsvPicked(Uri uri) {
+        if (uri == null) {
+            return;
+        }
+        new Thread(() -> {
+            try {
+                byte[] data = readAllBytes(uri);
+                String fileName = resolveDisplayName(uri);
+                BulkImportReportDto report = service.importKanjiCsv(data, fileName);
+                runOnUiThread(() -> showImportResult(report, fileName));
+            } catch (Exception ex) {
+                runOnUiThread(() -> toast(getString(R.string.toast_import_failed, ex.getMessage())));
+            }
+        }).start();
+    }
+
+    private byte[] readAllBytes(Uri uri) throws Exception {
+        try (InputStream inputStream = getContentResolver().openInputStream(uri);
+             ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+            if (inputStream == null) {
+                throw new IllegalStateException(getString(R.string.toast_import_failed, getString(R.string.dialog_import_unknown_file)));
+            }
+            byte[] chunk = new byte[4096];
+            int read;
+            while ((read = inputStream.read(chunk)) != -1) {
+                buffer.write(chunk, 0, read);
+            }
+            return buffer.toByteArray();
+        }
+    }
+
+    private String resolveDisplayName(Uri uri) {
+        String name = null;
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        if (cursor != null) {
+            try {
+                if (cursor.moveToFirst()) {
+                    int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (index >= 0) {
+                        name = cursor.getString(index);
+                    }
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+        if (name == null) {
+            name = uri.getLastPathSegment();
+        }
+        return name;
+    }
+
+    private void showImportResult(BulkImportReportDto report, String fileName) {
+        String title = getString(R.string.dialog_import_title,
+                fileName != null && !fileName.isEmpty() ? fileName : getString(R.string.dialog_import_unknown_file));
+        StringBuilder message = new StringBuilder();
+        message.append(getString(R.string.dialog_import_summary_line,
+                report.getTotalRows(), report.getKanjiInserted(), report.getKanjiUpdated(),
+                report.getQuestionsCreated(), report.getChoicesCreated()));
+        if (!report.getErrors().isEmpty()) {
+            message.append("\n\n").append(getString(R.string.dialog_import_errors_heading));
+            int limit = Math.min(report.getErrors().size(), 5);
+            for (int i = 0; i < limit; i++) {
+                BulkImportReportDto.RowError error = report.getErrors().get(i);
+                message.append("\n• ")
+                        .append(getString(R.string.dialog_import_error_item, error.getRowNumber(), error.getMessage()));
+            }
+            if (report.getErrors().size() > limit) {
+                message.append("\n").append(getString(R.string.dialog_import_more_errors,
+                        report.getErrors().size() - limit));
+            }
+        }
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(title)
+                .setMessage(message.toString())
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+
+        if (report.getErrors().isEmpty()) {
+            toast(getString(R.string.toast_import_success));
+        } else {
+            toast(getString(R.string.toast_import_completed_with_errors, report.getErrors().size()));
+        }
+        reloadLevels();
     }
 
     private LevelDto getSelectedLevel() {
