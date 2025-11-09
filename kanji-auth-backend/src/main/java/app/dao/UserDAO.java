@@ -2,6 +2,7 @@ package app.dao;
 
 import app.model.User;
 import java.sql.Connection;
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,7 +31,7 @@ public class UserDAO extends BaseDAO {
      * @throws SQLException khi truy vấn thất bại.
      */
     public User login(String identifier, String password) throws SQLException {
-        final String sql = "SELECT id, userName, email, imgUrl, matKhau, roleId, createdAt, updatedAt "
+        final String sql = "SELECT id, userName, email, imgUrl, matKhau, roleId, accountTier, vipExpiresAt, accountBalance, bio, createdAt, updatedAt "
                 + "FROM `User` WHERE (LOWER(email) = LOWER(?) OR LOWER(userName) = LOWER(?)) AND matKhau = ? LIMIT 1";
         try (Connection connection = getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -56,7 +57,7 @@ public class UserDAO extends BaseDAO {
      * @throws SQLException khi thao tác với DB thất bại.
      */
     public User ensureOAuthUser(String email, String name, String img) throws SQLException {
-        final String selectSql = "SELECT id, userName, email, imgUrl, matKhau, roleId, createdAt, updatedAt "
+        final String selectSql = "SELECT id, userName, email, imgUrl, matKhau, roleId, accountTier, vipExpiresAt, accountBalance, bio, createdAt, updatedAt "
                 + "FROM `User` WHERE email = ? LIMIT 1";
         try (Connection connection = getConnection();
              PreparedStatement find = connection.prepareStatement(selectSql)) {
@@ -67,12 +68,13 @@ public class UserDAO extends BaseDAO {
                 }
             }
 
-            final String insertSql = "INSERT INTO `User` (userName, email, imgUrl, roleId) VALUES (?,?,?,?)";
+            final String insertSql = "INSERT INTO `User` (userName, email, imgUrl, roleId, accountTier) VALUES (?,?,?,?,?)";
             try (PreparedStatement insert = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
                 insert.setString(1, name != null ? name : email);
                 insert.setString(2, email);
                 insert.setString(3, img);
                 insert.setInt(4, 2);
+                insert.setString(5, "FREE");
                 insert.executeUpdate();
                 try (ResultSet keys = insert.getGeneratedKeys()) {
                     if (keys.next()) {
@@ -83,6 +85,8 @@ public class UserDAO extends BaseDAO {
                         user.setEmail(email);
                         user.setImgUrl(img);
                         user.setRoleId(2);
+                        user.setAccountTier("FREE");
+                        user.setAccountBalance(BigDecimal.ZERO);
                         return user;
                     }
                 }
@@ -95,7 +99,7 @@ public class UserDAO extends BaseDAO {
      * Tìm người dùng theo ID.
      */
     public User findById(long id) throws SQLException {
-        final String sql = "SELECT id, userName, email, imgUrl, matKhau, roleId, createdAt, updatedAt FROM `User` WHERE id = ?";
+        final String sql = "SELECT id, userName, email, imgUrl, matKhau, roleId, accountTier, vipExpiresAt, accountBalance, bio, createdAt, updatedAt FROM `User` WHERE id = ?";
         try (Connection connection = getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setLong(1, id);
@@ -116,6 +120,10 @@ public class UserDAO extends BaseDAO {
         user.setImgUrl(rs.getString("imgUrl"));
         user.setPassword(rs.getString("matKhau"));
         user.setRoleId(rs.getInt("roleId"));
+        user.setAccountTier(rs.getString("accountTier"));
+        user.setVipExpiresAt(toLocalDateTime(rs.getTimestamp("vipExpiresAt")));
+        user.setAccountBalance(rs.getBigDecimal("accountBalance"));
+        user.setBio(rs.getString("bio"));
         user.setCreatedAt(toLocalDateTime(rs.getTimestamp("createdAt")));
         user.setUpdatedAt(toLocalDateTime(rs.getTimestamp("updatedAt")));
         return user;

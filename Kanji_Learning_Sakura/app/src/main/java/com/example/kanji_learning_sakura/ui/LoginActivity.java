@@ -115,7 +115,9 @@ public class LoginActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 AuthResponseDto dto = service.login(identifier, password);
-                authPrefs.save(dto.getToken(), dto.getRoleId(), dto.getUserId(), dto.getUserName());
+                authPrefs.save(dto.getToken(), dto.getRoleId(), dto.getUserId(), dto.getUserName(), dto.getEmail(),
+                        dto.getAvatarUrl(), dto.getAccountTier(), dto.getAccountBalance(),
+                        dto.getVipExpiresAt(), dto.getBio());
                 runOnUiThread(() -> {
                     setLoadingState(false);
                     toast(getString(R.string.msg_login_success, identifier));
@@ -145,7 +147,9 @@ public class LoginActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 AuthResponseDto dto = service.loginWithGoogle(idToken);
-                authPrefs.save(dto.getToken(), dto.getRoleId(), dto.getUserId(), dto.getUserName());
+                authPrefs.save(dto.getToken(), dto.getRoleId(), dto.getUserId(), dto.getUserName(), dto.getEmail(),
+                        dto.getAvatarUrl(), dto.getAccountTier(), dto.getAccountBalance(),
+                        dto.getVipExpiresAt(), dto.getBio());
                 runOnUiThread(() -> {
                     setLoadingState(false);
                     toast(getString(R.string.msg_login_ok));

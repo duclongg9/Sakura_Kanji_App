@@ -49,7 +49,11 @@ public class AuthMeServlet extends HttpServlet {
                     .put("userName", user.getUserName())
                     .put("email", user.getEmail())
                     .put("roleId", user.getRoleId())
-                    .put("imgUrl", user.getImgUrl());
+                    .put("imgUrl", user.getImgUrl())
+                    .put("accountTier", user.getAccountTier())
+                    .put("accountBalance", user.getAccountBalance() != null ? user.getAccountBalance() : 0)
+                    .put("vipExpiresAt", user.getVipExpiresAt() != null ? user.getVipExpiresAt().toString() : JSONObject.NULL)
+                    .put("bio", user.getBio());
             resp.getWriter().print(json.toString());
         } catch (SQLException ex) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

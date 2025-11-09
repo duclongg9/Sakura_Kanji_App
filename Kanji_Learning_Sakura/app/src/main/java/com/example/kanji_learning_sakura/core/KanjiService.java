@@ -6,8 +6,11 @@ import com.example.kanji_learning_sakura.model.JlptLevelDto;
 import com.example.kanji_learning_sakura.model.KanjiDto;
 import com.example.kanji_learning_sakura.model.LessonDto;
 import com.example.kanji_learning_sakura.model.LevelDto;
+import com.example.kanji_learning_sakura.model.ProfileDto;
 import com.example.kanji_learning_sakura.model.QuizChoiceDto;
 import com.example.kanji_learning_sakura.model.QuizQuestionDto;
+import com.example.kanji_learning_sakura.model.UpgradeRequestDto;
+import com.example.kanji_learning_sakura.model.WalletDepositDto;
 import java.util.ArrayList;
 import java.util.List;
 import okhttp3.MediaType;
@@ -59,6 +62,12 @@ public class KanjiService {
             dto.setRoleId(data.optInt("roleId"));
             dto.setUserName(data.optString("userName"));
             dto.setUserId(data.optLong("userId"));
+            dto.setEmail(data.optString("email", null));
+            dto.setAvatarUrl(data.optString("imgUrl", null));
+            dto.setAccountTier(data.optString("accountTier", "FREE"));
+            dto.setAccountBalance(data.optDouble("accountBalance", 0));
+            dto.setVipExpiresAt(data.isNull("vipExpiresAt") ? null : data.optString("vipExpiresAt"));
+            dto.setBio(data.optString("bio", null));
             return dto;
         }
     }
@@ -86,6 +95,113 @@ public class KanjiService {
             dto.setRoleId(data.optInt("roleId"));
             dto.setUserName(data.optString("userName"));
             dto.setUserId(data.optLong("userId"));
+            dto.setEmail(data.optString("email", null));
+            dto.setAvatarUrl(data.optString("imgUrl", null));
+            dto.setAccountTier(data.optString("accountTier", "FREE"));
+            dto.setAccountBalance(data.optDouble("accountBalance", 0));
+            dto.setVipExpiresAt(data.isNull("vipExpiresAt") ? null : data.optString("vipExpiresAt"));
+            dto.setBio(data.optString("bio", null));
+            return dto;
+        }
+    }
+
+    /**
+     * Tải thông tin hồ sơ người dùng hiện tại.
+     *
+     * @return {@link ProfileDto} chứa thông tin cơ bản và quyền hạn.
+     * @throws Exception nếu không thể gọi API.
+     */
+    public ProfileDto getProfile() throws Exception {
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/auth/me")
+                .get()
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IllegalStateException("HTTP " + response.code());
+            }
+            JSONObject obj = new JSONObject(response.body() != null ? response.body().string() : "{}");
+            ProfileDto dto = new ProfileDto();
+            dto.setId(obj.optLong("id"));
+            dto.setUserName(obj.optString("userName"));
+            dto.setEmail(obj.optString("email"));
+            dto.setRoleId(obj.optInt("roleId"));
+            dto.setAvatarUrl(obj.optString("imgUrl", null));
+            dto.setAccountTier(obj.optString("accountTier", "FREE"));
+            dto.setAccountBalance(obj.optDouble("accountBalance", 0));
+            dto.setVipExpiresAt(obj.isNull("vipExpiresAt") ? null : obj.optString("vipExpiresAt"));
+            dto.setBio(obj.optString("bio", null));
+            return dto;
+        }
+    }
+
+    /**
+     * Gửi yêu cầu nâng cấp tài khoản lên VIP.
+     *
+     * @param note ghi chú của người dùng.
+     * @return {@link UpgradeRequestDto} phản hồi từ backend.
+     * @throws Exception nếu request thất bại.
+     */
+    public UpgradeRequestDto createUpgradeRequest(String note) throws Exception {
+        JSONObject payload = new JSONObject();
+        if (note != null) {
+            payload.put("note", note);
+        }
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/account/upgrade-requests")
+                .post(RequestBody.create(payload.toString(), JSON))
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IllegalStateException("HTTP " + response.code());
+            }
+            JSONObject obj = new JSONObject(response.body() != null ? response.body().string() : "{}");
+            UpgradeRequestDto dto = new UpgradeRequestDto();
+            dto.setRequestId(obj.optLong("requestId"));
+            dto.setStatus(obj.optString("status"));
+            dto.setNote(obj.optString("note", null));
+            dto.setTargetRoleId(obj.optInt("targetRoleId"));
+            dto.setCreatedAt(obj.optString("createdAt", null));
+            return dto;
+        }
+    }
+
+    /**
+     * Khởi tạo giao dịch nạp tiền và nhận về QR code tương ứng.
+     *
+     * @param amount số tiền muốn nạp.
+     * @return {@link WalletDepositDto} chứa thông tin QR.
+     * @throws Exception nếu request thất bại.
+     */
+    public WalletDepositDto createDeposit(double amount) throws Exception {
+        JSONObject payload = new JSONObject().put("amount", amount);
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/wallet/deposits")
+                .post(RequestBody.create(payload.toString(), JSON))
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String body = response.body() != null ? response.body().string() : "";
+            if (!response.isSuccessful()) {
+                String message = "HTTP " + response.code();
+                if (body != null && !body.isEmpty()) {
+                    try {
+                        JSONObject error = new JSONObject(body);
+                        if (error.has("error")) {
+                            message = error.optString("error", message);
+                        }
+                    } catch (Exception ignored) {
+                        message = body;
+                    }
+                }
+                throw new IllegalStateException(message);
+            }
+            JSONObject obj = new JSONObject(body.isEmpty() ? "{}" : body);
+            WalletDepositDto dto = new WalletDepositDto();
+            dto.setDepositId(obj.optLong("depositId"));
+            dto.setAmount(obj.optDouble("amount"));
+            dto.setStatus(obj.optString("status"));
+            dto.setQrCodeUrl(obj.optString("qrCodeUrl"));
+            dto.setCreatedAt(obj.optString("createdAt", null));
             return dto;
         }
     }

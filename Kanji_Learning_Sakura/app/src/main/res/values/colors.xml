@@ -12,6 +12,7 @@
     <color name="hanabiInk">#2B2B2B</color>
     <color name="hanabiSurfaceVariant">#F4E7EB</color>
     <color name="hanabiOutline">#D7C2C5</color>
+    <color name="hanabiMist">#FFF6FA</color>
 
     <!-- Dark counterparts -->
     <color name="hanabiPinkDark">#F5B3BE</color>

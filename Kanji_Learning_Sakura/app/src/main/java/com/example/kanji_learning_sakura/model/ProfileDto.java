@@ -1,34 +1,25 @@
 package com.example.kanji_learning_sakura.model;
 
 /**
- * DTO phản hồi đăng nhập.
+ * DTO thông tin trang cá nhân hiển thị trong ứng dụng.
  */
-public class AuthResponseDto {
-    private String token;
-    private int roleId;
+public class ProfileDto {
+    private long id;
     private String userName;
-    private long userId;
     private String email;
+    private int roleId;
     private String avatarUrl;
     private String accountTier;
     private double accountBalance;
     private String vipExpiresAt;
     private String bio;
 
-    public String getToken() {
-        return token;
+    public long getId() {
+        return id;
     }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public int getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(int roleId) {
-        this.roleId = roleId;
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getUserName() {
@@ -39,20 +30,20 @@ public class AuthResponseDto {
         this.userName = userName;
     }
 
-    public long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(long userId) {
-        this.userId = userId;
-    }
-
     public String getEmail() {
         return email;
     }
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public int getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(int roleId) {
+        this.roleId = roleId;
     }
 
     public String getAvatarUrl() {

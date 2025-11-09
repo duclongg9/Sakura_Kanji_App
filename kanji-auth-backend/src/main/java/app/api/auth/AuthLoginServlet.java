@@ -47,7 +47,13 @@ public class AuthLoginServlet extends HttpServlet {
                     .put("token", fakeToken)
                     .put("roleId", user.getRoleId())
                     .put("userName", user.getUserName())
-                    .put("userId", user.getId());
+                    .put("email", user.getEmail())
+                    .put("userId", user.getId())
+                    .put("imgUrl", user.getImgUrl())
+                    .put("accountTier", user.getAccountTier())
+                    .put("accountBalance", user.getAccountBalance() != null ? user.getAccountBalance() : 0)
+                    .put("vipExpiresAt", user.getVipExpiresAt() != null ? user.getVipExpiresAt().toString() : JSONObject.NULL)
+                    .put("bio", user.getBio());
             out.print(responseJson.toString());
         } catch (SQLException ex) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
