@@ -51,4 +51,56 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+    <!--
+           XML doc-style note: Cung cấp style Material3 cho MaterialButton dạng viền.
+           Tham chiếu tới Widget.MaterialComponents để tránh lỗi thiếu tài nguyên.
+       -->
+    <style name="Widget.Material3.Button.Outlined"
+        parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearanceOverlay.Material3.Corner</item>
+    </style>
+
+    <!--
+        XML doc-style note: Style Material3 mô phỏng ElevatedButton, dùng nền nâng.
+        Sử dụng parent MaterialComponents mặc định để tương thích thư viện.
+    -->
+    <style name="Widget.Material3.Button.Elevated"
+        parent="Widget.MaterialComponents.Button">
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearanceOverlay.Material3.Corner</item>
+    </style>
+
+    <!--
+        XML doc-style note: Style Material3 cho FilledButton, sử dụng parent
+        mặc định của MaterialComponents để loại bỏ lỗi thiếu style.
+    -->
+    <style name="Widget.Material3.Button.Filled"
+        parent="Widget.MaterialComponents.Button">
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearanceOverlay.Material3.Corner</item>
+    </style>
+
+    <!--
+        XML doc-style note: Style Material3 FilledTonalButton tái sử dụng
+        MaterialComponents.Button để đảm bảo khả năng liên kết resource.
+    -->
+    <style name="Widget.Material3.Button.FilledTonal"
+        parent="Widget.MaterialComponents.Button">
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearanceOverlay.Material3.Corner</item>
+    </style>
+
 </resources>
