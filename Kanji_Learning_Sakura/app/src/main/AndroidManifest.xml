@@ -24,7 +24,7 @@
         <activity android:name=".ui.CreateLevelActivity"/>
         <activity android:name=".ui.CreateLessonActivity"/>
         <activity android:name=".ui.ProfileActivity"/>
-        <activity android:name=".ui.WalletDepositActivity"/>
+        <activity android:name=".ui.MomoUpgradeActivity"/>
         <activity android:name=".ui.MainActivity"/>
         <activity android:name=".ui.LoginActivity"/>
         <activity android:name=".ui.WelcomeActivity"

@@ -83,6 +83,7 @@
     <string name="toast_created_lesson">Đã tạo bài học %1$s</string>
 
     <!-- Hồ sơ & ví -->
+    <!-- Hồ sơ & thanh toán -->
     <string name="profile_title">Hồ sơ Sakura</string>
     <string name="profile_email">Email: %1$s</string>
     <string name="profile_account_tier">Cấp độ tài khoản: %1$s</string>
@@ -94,39 +95,31 @@
     <string name="profile_vip_exp">Hết hạn VIP: %1$s</string>
     <string name="profile_vip_unset">Chưa kích hoạt VIP</string>
     <string name="profile_bio_label">Giới thiệu</string>
-    <string name="profile_upgrade">Yêu cầu nâng cấp VIP</string>
-    <string name="profile_deposit">Nạp tiền QR</string>
+    <string name="profile_upgrade">Nâng cấp VIP qua MoMo</string>
     <string name="profile_logout">Đăng xuất</string>
-    <string name="dialog_upgrade_title">Ghi chú cho yêu cầu VIP</string>
-    <string name="hint_upgrade_note">Giới thiệu thêm về nhu cầu học tập của bạn</string>
-    <string name="label_cancel">Hủy</string>
-    <string name="label_send">Gửi</string>
-    <string name="msg_upgrade_success">Đã gửi yêu cầu VIP! Hãy đợi admin phê duyệt nhé.</string>
-    <string name="msg_upgrade_pending">Bạn đã gửi yêu cầu và đang chờ duyệt.</string>
-    <string name="msg_upgrade_error">Không gửi được yêu cầu VIP (%1$s)</string>
+    <string name="msg_upgrade_error">Không tạo được thanh toán (%1$s)</string>
 
-    <string name="wallet_title">Nạp tiền Sakura Wallet</string>
-    <string name="wallet_intro">Chọn số tiền muốn nạp để mở khóa khoá học VIP và tài liệu nâng cao.</string>
-    <string name="wallet_hint_amount">Số tiền muốn nạp (VNĐ)</string>
-    <string name="wallet_min_amount_label">Tối thiểu 20.000 ₫</string>
-    <string name="wallet_action_generate">Tạo mã QR</string>
-    <string name="wallet_quick_amount_title">Chọn nhanh</string>
-    <string name="wallet_amount_50k">50.000 ₫</string>
-    <string name="wallet_amount_100k">100.000 ₫</string>
-    <string name="wallet_amount_200k">200.000 ₫</string>
-    <string name="wallet_amount_500k">500.000 ₫</string>
-    <string name="wallet_empty_qr">Chưa có mã QR, hãy nhập số tiền và tạo nhé.</string>
-    <string name="wallet_status_detail">Mã GD #%1$d • %2$s • %3$s
-Tạo lúc: %4$s</string>
-    <string name="wallet_status_generating">Đang tạo mã QR...</string>
-    <string name="wallet_status_pending_label">Đang chờ thanh toán</string>
-    <string name="wallet_status_paid_label">Đã xác nhận</string>
-    <string name="wallet_status_cancelled_label">Đã hủy</string>
-    <string name="wallet_status_time_unknown">Chưa xác định</string>
-    <string name="wallet_meta_hint">Quét mã QR ngay để hoàn tất %1$s. Số dư sẽ cập nhật khi Sakura xác nhận thanh toán.</string>
-    <string name="wallet_error_required">Vui lòng nhập số tiền muốn nạp</string>
-    <string name="wallet_error_invalid">Số tiền không hợp lệ</string>
-    <string name="wallet_error_min_amount">Số tiền tối thiểu là %1$,d ₫</string>
-    <string name="msg_wallet_success">Đã tạo mã QR! Hãy mở ứng dụng ngân hàng để quét và chuyển khoản.</string>
-    <string name="msg_wallet_error">Không tạo được giao dịch (%1$s)</string>
+    <string name="dialog_import_title">Kết quả import: %1$s</string>
+    <string name="dialog_import_unknown_file">(không rõ tên tệp)</string>
+    <string name="dialog_import_summary_line">Tổng: %1$d dòng • Thêm mới: %2$d • Cập nhật: %3$d • Câu hỏi: %4$d • Đáp án: %5$d</string>
+    <string name="dialog_import_errors_heading">Các dòng gặp lỗi:</string>
+    <string name="dialog_import_error_item">Dòng %1$d: %2$s</string>
+    <string name="dialog_import_more_errors">... và %1$d lỗi khác.</string>
+    <string name="toast_import_success">Đã import Kanji thành công!</string>
+    <string name="toast_import_completed_with_errors">Import hoàn tất nhưng có %1$d dòng lỗi</string>
+    <string name="toast_import_failed">Import thất bại: %1$s</string>
+
+    <string name="momo_title">Thanh toán VIP</string>
+    <string name="momo_description">Chọn gói và thanh toán qua MoMo để mở khóa toàn bộ bài học VIP ngay lập tức.</string>
+    <string name="momo_plan_monthly">Gói 1 tháng – 99.000 ₫</string>
+    <string name="momo_plan_quarterly">Gói 3 tháng – 279.000 ₫</string>
+    <string name="momo_plan_yearly">Gói 12 tháng – 999.000 ₫</string>
+    <string name="momo_button_pay">Mở MoMo thanh toán</string>
+    <string name="momo_button_check">Kiểm tra trạng thái</string>
+    <string name="momo_status_waiting">Đơn hàng %1$s đang chờ thanh toán.</string>
+    <string name="momo_status_success">Thanh toán thành công! VIP sẽ hết hạn vào %1$s.</string>
+    <string name="momo_status_error">Thanh toán thất bại (%1$s)</string>
+    <string name="momo_status_stub_notice">(Đang ở chế độ giả lập – sử dụng link thử nghiệm)</string>
+    <string name="momo_label_last_order">Đơn hàng hiện tại: %1$s</string>
+    <string name="momo_no_order">Chưa tạo giao dịch nào.</string>
 </resources>

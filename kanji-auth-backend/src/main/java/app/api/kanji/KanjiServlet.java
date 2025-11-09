@@ -1,10 +1,10 @@
 package app.api.kanji;
 
+import app.api.support.JsonRequestHelper;
+import app.api.support.JsonValidationUtils;
 import app.dao.KanjiDAO;
 import app.model.Kanji;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.List;
 import jakarta.servlet.ServletException;
@@ -24,48 +24,60 @@ public class KanjiServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json;charset=UTF-8");
+        String idParam = req.getParameter("id");
         String levelIdParam = req.getParameter("levelId");
-        if (levelIdParam == null) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().print(new JSONObject().put("error", "Missing levelId").toString());
-            return;
-        }
+        KanjiDAO dao = new KanjiDAO();
         try {
+            if (idParam != null) {
+                long id = Long.parseLong(idParam);
+                Kanji kanji = dao.findById(id);
+                if (kanji == null) {
+                    JsonRequestHelper.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "KanjiNotFound", "Kanji not found");
+                } else {
+                    resp.getWriter().print(toJson(kanji).toString());
+                }
+                return;
+            }
+
+            if (levelIdParam == null) {
+                JsonRequestHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "MissingParameter", "Missing levelId");
+                return;
+            }
+
             int levelId = Integer.parseInt(levelIdParam);
-            List<Kanji> kanjiList = new KanjiDAO().findByLevel(levelId);
+            List<Kanji> kanjiList = dao.findByLevel(levelId);
             JSONArray array = new JSONArray();
             for (Kanji kanji : kanjiList) {
                 array.put(toJson(kanji));
             }
             resp.getWriter().print(array.toString());
         } catch (NumberFormatException ex) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().print(new JSONObject().put("error", "Invalid levelId").toString());
+            JsonRequestHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "InvalidId", "id must be a number");
         } catch (SQLException ex) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().print(new JSONObject().put("error", "Database error").toString());
+            JsonRequestHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "DatabaseError", "Database error occurred");
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json;charset=UTF-8");
-        try (BufferedReader reader = req.getReader(); PrintWriter out = resp.getWriter()) {
-            String body = reader.lines().reduce("", (acc, line) -> acc + line);
-            JSONObject payload = new JSONObject(body);
-            String character = payload.optString("character");
-            String hanViet = payload.optString("hanViet", null);
-            String onReading = payload.optString("onReading", null);
-            String kunReading = payload.optString("kunReading", null);
-            String description = payload.optString("description", null);
-            Integer levelId = payload.has("levelId") ? payload.optInt("levelId") : null;
-            if (payload.isNull("levelId")) {
-                levelId = null;
+        try {
+            JSONObject payload = JsonRequestHelper.readJsonObject(req);
+            JSONObject errors = new JSONObject();
+            String character = JsonValidationUtils.readRequiredString(payload, "character", errors);
+            String hanViet = JsonValidationUtils.readOptionalString(payload, "hanViet");
+            String onReading = JsonValidationUtils.readOptionalString(payload, "onReading");
+            String kunReading = JsonValidationUtils.readOptionalString(payload, "kunReading");
+            String description = JsonValidationUtils.readOptionalString(payload, "description");
+            Integer levelId = null;
+            if (payload.has("levelId")) {
+                if (!payload.isNull("levelId")) {
+                    levelId = JsonValidationUtils.readPositiveInt(payload.opt("levelId"), "levelId", true, errors);
+                }
             }
 
-            if (character.isBlank()) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.print(new JSONObject().put("error", "Character is required"));
+            if (errors.length() > 0) {
+                JsonRequestHelper.writeValidationErrors(resp, errors);
                 return;
             }
 
@@ -79,10 +91,108 @@ public class KanjiServlet extends HttpServlet {
 
             KanjiDAO dao = new KanjiDAO();
             dao.insert(kanji);
-            out.print(toJson(kanji).toString());
+            resp.setStatus(HttpServletResponse.SC_CREATED);
+            resp.getWriter().print(toJson(kanji).toString());
+        } catch (IllegalArgumentException ex) {
+            JsonRequestHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "InvalidRequest", ex.getMessage());
         } catch (SQLException ex) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().print(new JSONObject().put("error", "Database error").toString());
+            JsonRequestHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "DatabaseError", "Database error occurred");
+        }
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+        try {
+            JSONObject payload = JsonRequestHelper.readJsonObject(req);
+            JSONObject errors = new JSONObject();
+            Long id = JsonValidationUtils.readPositiveLong(payload.opt("id"), "id", false, errors);
+            if (errors.length() > 0) {
+                JsonRequestHelper.writeValidationErrors(resp, errors);
+                return;
+            }
+
+            KanjiDAO dao = new KanjiDAO();
+            Kanji existing = dao.findById(id);
+            if (existing == null) {
+                JsonRequestHelper.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "KanjiNotFound", "Kanji not found");
+                return;
+            }
+
+            boolean hasUpdates = false;
+            if (payload.has("character")) {
+                String character = JsonValidationUtils.readOptionalNonBlankString(payload, "character", errors);
+                if (character != null) {
+                    existing.setCharacter(character);
+                    hasUpdates = true;
+                }
+            }
+            if (payload.has("hanViet")) {
+                existing.setHanViet(JsonValidationUtils.toNullableString(payload.opt("hanViet")));
+                hasUpdates = true;
+            }
+            if (payload.has("onReading")) {
+                existing.setOnReading(JsonValidationUtils.toNullableString(payload.opt("onReading")));
+                hasUpdates = true;
+            }
+            if (payload.has("kunReading")) {
+                existing.setKunReading(JsonValidationUtils.toNullableString(payload.opt("kunReading")));
+                hasUpdates = true;
+            }
+            if (payload.has("description")) {
+                existing.setDescription(JsonValidationUtils.toNullableString(payload.opt("description")));
+                hasUpdates = true;
+            }
+            if (payload.has("levelId")) {
+                if (payload.isNull("levelId")) {
+                    existing.setLevelId(null);
+                    hasUpdates = true;
+                } else {
+                    Integer levelId = JsonValidationUtils.readPositiveInt(payload.opt("levelId"), "levelId", true, errors);
+                    if (levelId != null) {
+                        existing.setLevelId(levelId);
+                        hasUpdates = true;
+                    }
+                }
+            }
+
+            if (errors.length() > 0) {
+                JsonRequestHelper.writeValidationErrors(resp, errors);
+                return;
+            }
+            if (!hasUpdates) {
+                JsonRequestHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "NoChanges", "No fields supplied for update");
+                return;
+            }
+            dao.update(existing);
+            resp.getWriter().print(toJson(existing).toString());
+        } catch (IllegalArgumentException ex) {
+            JsonRequestHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "InvalidRequest", ex.getMessage());
+        } catch (SQLException ex) {
+            JsonRequestHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "DatabaseError", "Database error occurred");
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+        String idParam = req.getParameter("id");
+        if (idParam == null) {
+            JsonRequestHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "MissingParameter", "Missing id");
+            return;
+        }
+        try {
+            long id = Long.parseLong(idParam);
+            KanjiDAO dao = new KanjiDAO();
+            if (!dao.delete(id)) {
+                JsonRequestHelper.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "KanjiNotFound", "Kanji not found");
+                return;
+            }
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        } catch (NumberFormatException ex) {
+            JsonRequestHelper.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "InvalidId", "id must be a number");
+        } catch (SQLException ex) {
+            JsonRequestHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "DatabaseError", "Database error occurred");
         }
     }
 
@@ -96,4 +206,5 @@ public class KanjiServlet extends HttpServlet {
                 .put("description", kanji.getDescription())
                 .put("levelId", kanji.getLevelId());
     }
+
 }

@@ -22,51 +22,11 @@ public class AccountUpgradeServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json;charset=UTF-8");
-
-        Long userId = resolveUserId(req);
-        if (userId == null) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.getWriter().print(new JSONObject().put("error", "Missing token").toString());
-            return;
-        }
-
-        try {
-            UserDAO userDAO = new UserDAO();
-            User user = userDAO.findById(userId);
-            if (user == null) {
-                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                resp.getWriter().print(new JSONObject().put("error", "User not found").toString());
-                return;
-            }
-
-            AccountUpgradeRequestDAO requestDAO = new AccountUpgradeRequestDAO();
-            if (requestDAO.hasPendingRequest(userId)) {
-                resp.setStatus(HttpServletResponse.SC_CONFLICT);
-                resp.getWriter().print(new JSONObject().put("error", "Request already pending").toString());
-                return;
-            }
-
-            String body = readBody(req);
-            JSONObject payload = new JSONObject(body.isEmpty() ? "{}" : body);
-            String note = payload.optString("note", null);
-            int targetRole = payload.optInt("targetRoleId", 3);
-            if (targetRole != 3) {
-                targetRole = 3; // hiện chỉ hỗ trợ nâng cấp lên VIP
-            }
-
-            AccountUpgradeRequest request = requestDAO.create(userId, user.getRoleId(), targetRole, note);
-
-            JSONObject json = new JSONObject()
-                    .put("requestId", request.getRequestId())
-                    .put("status", request.getStatus())
-                    .put("note", request.getNote())
-                    .put("targetRoleId", request.getTargetRoleId())
-                    .put("createdAt", request.getCreatedAt() != null ? request.getCreatedAt().toString() : JSONObject.NULL);
-            resp.getWriter().print(json.toString());
-        } catch (SQLException ex) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().print(new JSONObject().put("error", "Database error").toString());
-        }
+        JSONObject json = new JSONObject()
+                .put("error", "Deprecated")
+                .put("message", "Vui lòng sử dụng thanh toán MoMo tại /api/payments/momo để nâng cấp VIP");
+        resp.setStatus(HttpServletResponse.SC_GONE);
+        resp.getWriter().print(json.toString());
     }
 
     private Long resolveUserId(HttpServletRequest req) {

@@ -14,10 +14,7 @@ import com.example.kanji_learning_sakura.core.KanjiService;
 import com.example.kanji_learning_sakura.model.ProfileDto;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.imageview.ShapeableImageView;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -39,7 +36,6 @@ public class ProfileActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private View content;
     private MaterialButton btnUpgrade;
-    private MaterialButton btnDeposit;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,11 +63,9 @@ public class ProfileActivity extends AppCompatActivity {
         content = findViewById(R.id.profileScroll);
 
         btnUpgrade = findViewById(R.id.btnUpgrade);
-        btnDeposit = findViewById(R.id.btnDeposit);
         MaterialButton btnLogout = findViewById(R.id.btnLogoutProfile);
 
-        btnUpgrade.setOnClickListener(v -> showUpgradeDialog());
-        btnDeposit.setOnClickListener(v -> startActivity(new Intent(this, WalletDepositActivity.class)));
+        btnUpgrade.setOnClickListener(v -> startActivity(new Intent(this, MomoUpgradeActivity.class)));
         btnLogout.setOnClickListener(v -> {
             authPrefs.clear();
             startActivity(new Intent(this, WelcomeActivity.class)
@@ -160,7 +154,6 @@ public class ProfileActivity extends AppCompatActivity {
         }
         boolean isVip = "VIP".equalsIgnoreCase(profile.getAccountTier()) || profile.getRoleId() == 3;
         btnUpgrade.setEnabled(!isVip && profile.getRoleId() != 1);
-        btnDeposit.setEnabled(true);
     }
 
     private void setLoading(boolean loading) {
@@ -178,51 +171,6 @@ public class ProfileActivity extends AppCompatActivity {
             display = getString(R.string.profile_role_free);
         }
         tvTier.setText(getString(R.string.profile_account_tier, display));
-    }
-
-    private void showUpgradeDialog() {
-        TextInputLayout layout = (TextInputLayout) getLayoutInflater().inflate(R.layout.view_upgrade_note, null);
-        TextInputEditText edtNote = layout.findViewById(R.id.edtUpgradeNote);
-
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.dialog_upgrade_title)
-                .setView(layout)
-                .setNegativeButton(R.string.label_cancel, (dialog, which) -> dialog.dismiss())
-                .setPositiveButton(R.string.label_send, (dialog, which) -> {
-                    String note = edtNote.getText() != null ? edtNote.getText().toString().trim() : null;
-                    sendUpgradeRequest(note);
-                })
-                .show();
-    }
-
-    private void sendUpgradeRequest(String note) {
-        btnUpgrade.setEnabled(false);
-        setLoading(true);
-        new Thread(() -> {
-            try {
-                service.createUpgradeRequest(note);
-                runOnUiThread(() -> {
-                    setLoading(false);
-                    toast(getString(R.string.msg_upgrade_success));
-                });
-            } catch (IllegalStateException ex) {
-                runOnUiThread(() -> {
-                    setLoading(false);
-                    if (ex.getMessage() != null && ex.getMessage().contains("409")) {
-                        toast(getString(R.string.msg_upgrade_pending));
-                    } else {
-                        toast(getString(R.string.msg_upgrade_error, ex.getMessage()));
-                        btnUpgrade.setEnabled(true);
-                    }
-                });
-            } catch (Exception ex) {
-                runOnUiThread(() -> {
-                    setLoading(false);
-                    toast(getString(R.string.msg_upgrade_error, ex.getMessage()));
-                    btnUpgrade.setEnabled(true);
-                });
-            }
-        }).start();
     }
 
     private void toast(String msg) {

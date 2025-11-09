@@ -62,6 +62,13 @@ public class LevelDAO extends BaseDAO {
         return level;
     }
 
+    /**
+     * Lấy thông tin level theo khóa chính.
+     *
+     * @param id giá trị khóa chính.
+     * @return {@link Level} nếu tồn tại, ngược lại {@code null}.
+     * @throws SQLException nếu truy vấn gặp lỗi.
+     */
     public Level findById(int id) throws SQLException {
         final String sql = "SELECT id, name, jlptLevelId, description, isActive, accessTier, createdAt, updatedAt FROM Level WHERE id = ?";
         try (Connection connection = getConnection();
@@ -74,6 +81,43 @@ public class LevelDAO extends BaseDAO {
             }
         }
         return null;
+    }
+
+    /**
+     * Cập nhật thông tin level đã tồn tại.
+     *
+     * @param level đối tượng level chứa dữ liệu mới.
+     * @return {@code true} nếu câu lệnh cập nhật thành công.
+     * @throws SQLException nếu truy vấn gặp lỗi.
+     */
+    public boolean update(Level level) throws SQLException {
+        final String sql = "UPDATE Level SET name = ?, jlptLevelId = ?, description = ?, isActive = ?, accessTier = ? WHERE id = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, level.getName());
+            ps.setInt(2, level.getJlptLevelId());
+            ps.setString(3, level.getDescription());
+            ps.setBoolean(4, level.isActive());
+            ps.setString(5, level.getAccessTier());
+            ps.setInt(6, level.getId());
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Xóa level theo id.
+     *
+     * @param id khóa chính cần xóa.
+     * @return {@code true} nếu đã xóa được dữ liệu.
+     * @throws SQLException nếu truy vấn gặp lỗi.
+     */
+    public boolean delete(int id) throws SQLException {
+        final String sql = "DELETE FROM Level WHERE id = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        }
     }
 
     private Level map(ResultSet rs) throws SQLException {
