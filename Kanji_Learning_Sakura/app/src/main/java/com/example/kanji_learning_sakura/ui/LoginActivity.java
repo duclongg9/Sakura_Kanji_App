@@ -171,8 +171,18 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void startGoogleLogin() {
-        Intent intent = googleClient.getSignInIntent();
-        googleLauncher.launch(intent);
+        // Clear any previous local selection first so chooser shows.
+        googleClient.signOut()
+                .addOnCompleteListener(this, task -> {
+                    // Now launch the sign-in intent (will show chooser)
+                    Intent intent = googleClient.getSignInIntent();
+                    googleLauncher.launch(intent);
+                })
+                .addOnFailureListener(e -> {
+                    // If signOut fails for some reason still try to show chooser
+                    Intent intent = googleClient.getSignInIntent();
+                    googleLauncher.launch(intent);
+                });
     }
 
     private void setLoadingState(boolean loading) {
