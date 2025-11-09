@@ -58,6 +58,8 @@
     <string name="hint_select_lesson">Chọn Bài học</string>
     <string name="label_add_level">Thêm Level</string>
     <string name="label_add_lesson">Thêm bài học</string>
+    <!-- Label for triggering the CSV import flow in the admin Kanji screen -->
+    <string name="label_import_csv">Import CSV</string>
     <string name="label_save_kanji">Lưu Kanji</string>
     <string name="hint_kanji_char">Ký tự Kanji</string>
     <string name="hint_hanviet">Hán Việt</string>
