@@ -23,7 +23,7 @@ public class GoogleLoginServlet extends HttpServlet {
 
     private static final String WEB_CLIENT_ID = System.getProperty(
             "KANJI_APP_GOOGLE_CLIENT",
-            "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com");
+            "748643708301-n2167jrvf5akg0pt79ilai54mslhgqaf.apps.googleusercontent.com");
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
