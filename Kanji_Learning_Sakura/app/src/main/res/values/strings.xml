@@ -30,7 +30,7 @@
 
     <!-- Google Sign-In -->
     <!-- Thay bằng OAuth 2.0 Web Client ID thật của bạn -->
-    <string name="web_client_id">748643708301-n2167jrvf5akg0pt79ilai54mslhgqaf.apps.googleusercontent.com</string>
+    <string name="web_client_id">748643708301-uf7ohdkk9uenqn4rc8b9e46rm1j9b2kq.apps.googleusercontent.com</string>
     <string name="msg_google_cancel">Đăng nhập Google bị hủy</string>
     <string name="msg_google_fail">Google Sign-In lỗi: %1$s</string>
     <string name="msg_backend_fail">Server trả lỗi: %1$d</string>

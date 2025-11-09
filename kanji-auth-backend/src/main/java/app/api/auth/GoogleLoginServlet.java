@@ -21,9 +21,14 @@ import org.json.JSONObject;
 @WebServlet(name = "GoogleLoginServlet", urlPatterns = "/api/auth/google")
 public class GoogleLoginServlet extends HttpServlet {
 
-    private static final String WEB_CLIENT_ID = System.getProperty(
-            "KANJI_APP_GOOGLE_CLIENT",
-            "748643708301-n2167jrvf5akg0pt79ilai54mslhgqaf.apps.googleusercontent.com");
+     /**
+     * Google OAuth web client ID được backend tin cậy để xác minh {@code idToken}.
+     * <p>
+     * Có thể ghi đè qua biến môi trường {@code GOOGLE_WEB_CLIENT_ID} khi deploy.
+     */
+    private static final String WEB_CLIENT_ID = System.getenv().getOrDefault(
+            "GOOGLE_WEB_CLIENT_ID",
+            "748643708301-uf7ohdkk9uenqn4rc8b9e46rm1j9b2kq.apps.googleusercontent.com");
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
