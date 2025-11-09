@@ -39,8 +39,7 @@ dependencies {
     // Google Sign-In SDK
     implementation("com.google.android.gms:play-services-auth:21.2.0")
     implementation("com.squareup.picasso:picasso:2.8")
-    implementation("com.google.android.material:material:1.5.0")
-// Or a newer version
+
 
     // Unit test cơ bản
     testImplementation("junit:junit:4.13.2")
