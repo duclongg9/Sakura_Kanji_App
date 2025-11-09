@@ -8,5 +8,19 @@
     <style name="Widget.Material3.Button.Elevated" parent="@style/Widget.MaterialComponents.Button" />
     <style name="Widget.Material3.Button.TonalButton" parent="@style/Widget.MaterialComponents.Button" />
     <style name="Widget.Material3.CardView.Elevated" parent="@style/Widget.MaterialComponents.CardView" />
+    <!--
+       Javadoc-equivalent (XML comment): Kiểu nút Filled mô phỏng Material3 bằng cách
+       kế thừa trực tiếp Button của Material Components.
+   -->
+    <style name="Widget.Material3.Button.Filled" parent="@style/Widget.MaterialComponents.Button" />
     <style name="Widget.Material3.CardView.Outlined" parent="@style/Widget.MaterialComponents.CardView" />
+
+    <!--
+        Javadoc-equivalent (XML comment): Bo góc mặc định 16dp mô phỏng
+        ShapeAppearanceOverlay.Material3.Corner để tránh lỗi AAPT.
+    -->
+    <style name="ShapeAppearanceOverlay.Material3.Corner">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
 </resources>
