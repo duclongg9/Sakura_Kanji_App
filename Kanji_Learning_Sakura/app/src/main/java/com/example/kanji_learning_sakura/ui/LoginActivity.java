@@ -17,6 +17,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.material.textfield.TextInputEditText;
 import java.io.IOException;
 
@@ -35,12 +36,20 @@ public class LoginActivity extends AppCompatActivity {
 
     private final ActivityResultLauncher<Intent> googleLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() != RESULT_OK || result.getData() == null) {
-                    toast(getString(R.string.msg_google_cancel));
+                // Lưu lại dữ liệu trả về để xử lý thông báo phù hợp thay vì báo hủy mọi trường hợp.
+                Intent data = result.getData();
+                if (data == null) {
+                    if (result.getResultCode() == RESULT_CANCELED) {
+                        toast(getString(R.string.msg_google_cancel));
+                    } else {
+                        toast(getString(R.string.msg_google_fail,
+                                "Missing intent data (code=" + result.getResultCode() + ")"));
+                    }
                     return;
                 }
                 try {
-                    GoogleSignInAccount account = GoogleSignIn.getSignedInAccountFromIntent(result.getData()).getResult(ApiException.class);
+                    GoogleSignInAccount account = GoogleSignIn.getSignedInAccountFromIntent(data)
+                            .getResult(ApiException.class);
                     if (account != null) {
                         String idToken = account.getIdToken();
                         if (idToken == null) {
@@ -50,7 +59,11 @@ public class LoginActivity extends AppCompatActivity {
                         handleGoogleLogin(idToken);
                     }
                 } catch (ApiException ex) {
-                    toast(getString(R.string.msg_google_fail, ex.getMessage()));
+                    if (ex.getStatusCode() == CommonStatusCodes.CANCELED) {
+                        toast(getString(R.string.msg_google_cancel));
+                    } else {
+                        toast(getString(R.string.msg_google_fail, ex.getMessage()));
+                    }
                 }
             });
 
