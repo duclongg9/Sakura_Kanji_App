@@ -21,9 +21,28 @@ import org.json.JSONObject;
 @WebServlet(name = "GoogleLoginServlet", urlPatterns = "/api/auth/google")
 public class GoogleLoginServlet extends HttpServlet {
 
-    private static final String WEB_CLIENT_ID = System.getProperty(
-            "KANJI_APP_GOOGLE_CLIENT",
-            "748643708301-n2167jrvf5akg0pt79ilai54mslhgqaf.apps.googleusercontent.com");
+    private static final String DEFAULT_WEB_CLIENT_ID =
+            "748643708301-n2167jrvf5akg0pt79ilai54mslhgqaf.apps.googleusercontent.com";
+
+    /**
+     * Đọc Google OAuth client ID từ system property hoặc biến môi trường.
+     * <p>
+     * Khi triển khai thực tế nên truyền {@code -DKANJI_APP_GOOGLE_CLIENT=<client-id>} cho JVM hoặc
+     * cấu hình biến môi trường cùng tên. Nếu không tồn tại, ứng dụng sẽ dùng giá trị mặc định dành
+     * cho môi trường phát triển (trùng với chuỗi trong strings.xml của Android app).
+     */
+    private static final String WEB_CLIENT_ID = resolveWebClientId();
+
+    private static String resolveWebClientId() {
+        String clientId = System.getProperty("KANJI_APP_GOOGLE_CLIENT");
+        if (clientId == null || clientId.isBlank()) {
+            clientId = System.getenv("KANJI_APP_GOOGLE_CLIENT");
+        }
+        if (clientId == null || clientId.isBlank()) {
+            clientId = DEFAULT_WEB_CLIENT_ID;
+        }
+        return clientId;
+    }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
