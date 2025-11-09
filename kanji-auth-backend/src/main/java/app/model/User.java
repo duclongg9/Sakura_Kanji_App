@@ -1,5 +1,6 @@
 package app.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -12,6 +13,10 @@ public class User {
     private String imgUrl;
     private String password;
     private int roleId;
+    private String accountTier;
+    private LocalDateTime vipExpiresAt;
+    private BigDecimal accountBalance;
+    private String bio;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -61,6 +66,38 @@ public class User {
 
     public void setRoleId(int roleId) {
         this.roleId = roleId;
+    }
+
+    public String getAccountTier() {
+        return accountTier;
+    }
+
+    public void setAccountTier(String accountTier) {
+        this.accountTier = accountTier;
+    }
+
+    public LocalDateTime getVipExpiresAt() {
+        return vipExpiresAt;
+    }
+
+    public void setVipExpiresAt(LocalDateTime vipExpiresAt) {
+        this.vipExpiresAt = vipExpiresAt;
+    }
+
+    public BigDecimal getAccountBalance() {
+        return accountBalance;
+    }
+
+    public void setAccountBalance(BigDecimal accountBalance) {
+        this.accountBalance = accountBalance;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
     public LocalDateTime getCreatedAt() {

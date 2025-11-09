@@ -47,6 +47,8 @@
     <string name="dashboard_hero_title">Cùng nở rộ Kanji mỗi ngày</string>
     <string name="dashboard_hero_subtitle">Lộ trình học cá nhân hoá với sắc hồng Sakura dịu dàng.</string>
     <string name="dashboard_subtitle">Chọn tính năng để tiếp tục hành trình của bạn.</string>
+    <string name="dashboard_view_profile">Xem hồ sơ</string>
+    <string name="dashboard_balance_label">Ví hiện có: %1$.0f ₫</string>
     <string name="quiz_progress">Câu %1$d/%2$d • Đúng: %3$d</string>
     <string name="quiz_next">Tiếp theo</string>
     <string name="quiz_finish">Hoàn thành</string>
@@ -79,4 +81,52 @@
     <string name="toast_saved_kanji">Đã lưu Kanji %1$s</string>
     <string name="toast_created_level">Đã tạo level %1$s</string>
     <string name="toast_created_lesson">Đã tạo bài học %1$s</string>
+
+    <!-- Hồ sơ & ví -->
+    <string name="profile_title">Hồ sơ Sakura</string>
+    <string name="profile_email">Email: %1$s</string>
+    <string name="profile_account_tier">Cấp độ tài khoản: %1$s</string>
+    <string name="profile_role_admin">Quản trị viên</string>
+    <string name="profile_role_vip">Thành viên VIP</string>
+    <string name="profile_role_free">Thành viên thường</string>
+    <string name="profile_balance_label">Số dư ví</string>
+    <string name="profile_balance">%1$.0f ₫</string>
+    <string name="profile_vip_exp">Hết hạn VIP: %1$s</string>
+    <string name="profile_vip_unset">Chưa kích hoạt VIP</string>
+    <string name="profile_bio_label">Giới thiệu</string>
+    <string name="profile_upgrade">Yêu cầu nâng cấp VIP</string>
+    <string name="profile_deposit">Nạp tiền QR</string>
+    <string name="profile_logout">Đăng xuất</string>
+    <string name="dialog_upgrade_title">Ghi chú cho yêu cầu VIP</string>
+    <string name="hint_upgrade_note">Giới thiệu thêm về nhu cầu học tập của bạn</string>
+    <string name="label_cancel">Hủy</string>
+    <string name="label_send">Gửi</string>
+    <string name="msg_upgrade_success">Đã gửi yêu cầu VIP! Hãy đợi admin phê duyệt nhé.</string>
+    <string name="msg_upgrade_pending">Bạn đã gửi yêu cầu và đang chờ duyệt.</string>
+    <string name="msg_upgrade_error">Không gửi được yêu cầu VIP (%1$s)</string>
+
+    <string name="wallet_title">Nạp tiền Sakura Wallet</string>
+    <string name="wallet_intro">Chọn số tiền muốn nạp để mở khóa khoá học VIP và tài liệu nâng cao.</string>
+    <string name="wallet_hint_amount">Số tiền muốn nạp (VNĐ)</string>
+    <string name="wallet_min_amount_label">Tối thiểu 20.000 ₫</string>
+    <string name="wallet_action_generate">Tạo mã QR</string>
+    <string name="wallet_quick_amount_title">Chọn nhanh</string>
+    <string name="wallet_amount_50k">50.000 ₫</string>
+    <string name="wallet_amount_100k">100.000 ₫</string>
+    <string name="wallet_amount_200k">200.000 ₫</string>
+    <string name="wallet_amount_500k">500.000 ₫</string>
+    <string name="wallet_empty_qr">Chưa có mã QR, hãy nhập số tiền và tạo nhé.</string>
+    <string name="wallet_status_detail">Mã GD #%1$d • %2$s • %3$s
+Tạo lúc: %4$s</string>
+    <string name="wallet_status_generating">Đang tạo mã QR...</string>
+    <string name="wallet_status_pending_label">Đang chờ thanh toán</string>
+    <string name="wallet_status_paid_label">Đã xác nhận</string>
+    <string name="wallet_status_cancelled_label">Đã hủy</string>
+    <string name="wallet_status_time_unknown">Chưa xác định</string>
+    <string name="wallet_meta_hint">Quét mã QR ngay để hoàn tất %1$s. Số dư sẽ cập nhật khi Sakura xác nhận thanh toán.</string>
+    <string name="wallet_error_required">Vui lòng nhập số tiền muốn nạp</string>
+    <string name="wallet_error_invalid">Số tiền không hợp lệ</string>
+    <string name="wallet_error_min_amount">Số tiền tối thiểu là %1$,d ₫</string>
+    <string name="msg_wallet_success">Đã tạo mã QR! Hãy mở ứng dụng ngân hàng để quét và chuyển khoản.</string>
+    <string name="msg_wallet_error">Không tạo được giao dịch (%1$s)</string>
 </resources>

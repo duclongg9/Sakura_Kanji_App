@@ -67,7 +67,13 @@ public class GoogleLoginServlet extends HttpServlet {
                     .put("token", fakeToken)
                     .put("roleId", user.getRoleId())
                     .put("userName", user.getUserName())
-                    .put("userId", user.getId());
+                    .put("email", user.getEmail())
+                    .put("userId", user.getId())
+                    .put("imgUrl", user.getImgUrl())
+                    .put("accountTier", user.getAccountTier())
+                    .put("accountBalance", user.getAccountBalance() != null ? user.getAccountBalance() : 0)
+                    .put("vipExpiresAt", user.getVipExpiresAt() != null ? user.getVipExpiresAt().toString() : JSONObject.NULL)
+                    .put("bio", user.getBio());
             resp.getWriter().print(response.toString());
         } catch (Exception ex) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
