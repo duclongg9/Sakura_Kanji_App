@@ -1,38 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- “Bản đồ” style Material3 -> Material Components -->
-    <style name="Widget.Material3.TextInputLayout.OutlinedBox"
-        parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox" />
+    <!--
+        Thiết lập shape token Material3 cơ bản dựa trên Material Components.
+        Các style này giúp theme M3 tìm thấy tài nguyên `ShapeAppearance.*` khi
+        thư viện chưa cung cấp sẵn.
+    -->
+    <style name="ShapeAppearance.Material3.Corner.Small"
+        parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
 
-    <style name="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-        parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" />
-
-    <style name="Widget.Material3.Button.FilledTonal"
-        parent="Widget.MaterialComponents.Button" />
-
-    <style name="Widget.Material3.Button.Outlined"
-        parent="Widget.MaterialComponents.Button.OutlinedButton" />
-
-    <style name="Widget.Material3.Button.Elevated"
-        parent="Widget.MaterialComponents.Button" />
-
-    <style name="Widget.Material3.Button.TonalButton"
-        parent="Widget.MaterialComponents.Button" />
-
-    <style name="Widget.Material3.Button.Filled"
-        parent="Widget.MaterialComponents.Button" />
-
-    <style name="Widget.Material3.CardView.Elevated"
-        parent="Widget.MaterialComponents.CardView" />
-
-    <style name="Widget.Material3.CardView.Outlined"
-        parent="Widget.MaterialComponents.CardView" />
-
-    <!-- Overlay bo góc 16dp để gắn vào widget hỗ trợ shapeAppearanceOverlay -->
-    <style name="ShapeAppearanceOverlay.Material3.Corner">
+    <style name="ShapeAppearance.Material3.Corner.Medium"
+        parent="ShapeAppearance.MaterialComponents.MediumComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">16dp</item>
     </style>
 
+    <style name="ShapeAppearance.Material3.Corner.Large"
+        parent="ShapeAppearance.MaterialComponents.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+
+    <!--
+        Javadoc-equivalent (XML comment): Bo góc mặc định 16dp mô phỏng
+        ShapeAppearanceOverlay.Material3.Corner để tránh lỗi AAPT.
+    -->
+    <style name="ShapeAppearanceOverlay.Material3.Corner"
+        parent="@style/ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.Material3.Corner.Small"
+        parent="@style/ShapeAppearance.Material3.Corner.Small">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.Material3.Corner.Large"
+        parent="@style/ShapeAppearance.Material3.Corner.Large">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.Material3.Corner.Full"
+        parent="@style/ShapeAppearanceOverlay.Material3.Corner">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
 </resources>
