@@ -75,6 +75,16 @@ public class AuthPrefs {
     /** @return thời điểm hết hạn VIP nếu có. */
     public String vipExpiresAt() { return sp.getString(K_VIP_EXPIRES, null); }
 
+    /**
+     * Kiểm tra xem tài khoản hiện tại đã có quyền VIP hay chưa.
+     *
+     * @return {@code true} nếu tài khoản là VIP hoặc có roleId quản trị viên.
+     */
+    public boolean isVipUser() {
+        String tier = accountTier();
+        return "VIP".equalsIgnoreCase(tier) || roleId() == 3;
+    }
+
     /** @return ghi chú/bio của người dùng. */
     public String bio() { return sp.getString(K_BIO, null); }
 
