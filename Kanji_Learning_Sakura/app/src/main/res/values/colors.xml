@@ -24,6 +24,7 @@
     <color name="hanabiSurfaceVariantDark">#3A2B30</color>
     <color name="hanabiOutlineDark">#6C545C</color>
     <color name="sakuraPinkDark">#C75B7A</color>
+    <color name="sakuraPinkLight">#F8CAD7</color>
 
     <!-- Semantic accents -->
     <color name="hanabiSuccess">#2E7D32</color>
