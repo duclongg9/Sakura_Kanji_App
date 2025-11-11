@@ -17,6 +17,8 @@
         android:networkSecurityConfig="@xml/network_security_config">
 
         <!-- Activity phải ở TRONG application -->
+        <activity android:name=".ui.ExamPlayerActivity"/>
+        <activity android:name=".ui.ExamSetupActivity"/>
         <activity android:name=".ui.QuizPlayerActivity"/>
         <activity android:name=".ui.QuizSetupActivity"/>
         <activity android:name=".ui.KanjiBrowserActivity"/>

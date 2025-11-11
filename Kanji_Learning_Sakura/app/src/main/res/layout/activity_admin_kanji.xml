@@ -91,8 +91,18 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
                             android:gravity="end"
-                            android:layout_marginTop="4dp">
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnEditLevel"
+                                style="?attr/materialButtonOutlinedStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="8dp"
+                                android:text="@string/label_edit_level"
+                                android:textAllCaps="false" />
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnCreateLevel"

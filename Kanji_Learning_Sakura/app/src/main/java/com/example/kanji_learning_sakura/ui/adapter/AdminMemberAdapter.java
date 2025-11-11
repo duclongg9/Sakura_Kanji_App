@@ -112,8 +112,10 @@ public class AdminMemberAdapter extends RecyclerView.Adapter<AdminMemberAdapter.
                     note = context.getString(R.string.member_pending_request_no_note);
                 }
                 tvRequest.setText(context.getString(R.string.member_pending_request, statusLabel, note));
-                btnApprove.setVisibility(item.getRequestId() != null ? View.VISIBLE : View.GONE);
-                btnApprove.setEnabled(item.getRequestId() != null);
+                btnApprove.setVisibility(View.VISIBLE);
+                boolean canApprove = item.getRequestId() != null;
+                btnApprove.setEnabled(canApprove);
+                btnApprove.setAlpha(canApprove ? 1f : 0.5f);
             } else {
                 tvRequest.setVisibility(View.GONE);
                 btnApprove.setVisibility(View.GONE);

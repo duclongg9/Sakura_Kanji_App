@@ -53,7 +53,7 @@ public class CreateLessonActivity extends AppCompatActivity {
                 List<JlptLevelDto> jlpt = service.getJlptLevels();
                 List<LevelDto> all = new ArrayList<>();
                 for (JlptLevelDto j : jlpt) {
-                    all.addAll(service.getLevels(j.getId()));
+                    all.addAll(service.getLevels(j.getId(), true));
                 }
                 runOnUiThread(() -> {
                     levels.clear();
@@ -134,7 +134,9 @@ public class CreateLessonActivity extends AppCompatActivity {
     private List<String> toLevelNames(List<LevelDto> items) {
         List<String> result = new ArrayList<>();
         for (LevelDto dto : items) {
-            result.add(dto.getName());
+            result.add(dto.isActive()
+                    ? dto.getName()
+                    : getString(R.string.label_level_hidden, dto.getName()));
         }
         return result;
     }
