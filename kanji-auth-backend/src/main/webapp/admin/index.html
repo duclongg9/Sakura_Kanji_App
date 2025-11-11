@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sakura Kanji - Quản trị</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="brand">
+        <img src="https://img.icons8.com/?size=100&id=13766&format=png&color=000000" alt="Hoa anh đào" />
+        <div>
+          <h1>Khu vực quản trị Sakura Kanji</h1>
+          <p>Theo dõi hội viên và xử lý yêu cầu nâng cấp VIP.</p>
+        </div>
+      </div>
+      <div class="session-panel">
+        <span id="admin-session-label" class="session-label">Chưa đăng nhập</span>
+        <button id="open-session-dialog" type="button" class="ghost-button">Đăng nhập</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="card">
+        <header class="card__header">
+          <div>
+            <h2>Danh sách hội viên</h2>
+            <p>Áp dụng bộ lọc để tìm đúng đối tượng bạn cần.</p>
+          </div>
+          <div class="filters">
+            <label class="filter">
+              <span>Bộ lọc</span>
+              <select id="member-filter">
+                <option value="">Tất cả</option>
+                <option value="pending">Đang chờ duyệt</option>
+                <option value="vip">Đang là VIP</option>
+                <option value="free">Tài khoản miễn phí</option>
+              </select>
+            </label>
+            <label class="filter">
+              <span>Tìm kiếm</span>
+              <input id="search-input" type="search" placeholder="Tên hoặc email" />
+            </label>
+          </div>
+        </header>
+
+        <div class="table-wrapper">
+          <table id="members-table">
+            <thead>
+              <tr>
+                <th>Người dùng</th>
+                <th>Email</th>
+                <th>Hạng tài khoản</th>
+                <th>VIP hết hạn</th>
+                <th>Trạng thái yêu cầu</th>
+              </tr>
+            </thead>
+            <tbody id="members-tbody">
+              <tr class="placeholder">
+                <td colspan="5">Chưa có dữ liệu. Hãy chọn bộ lọc khác hoặc kiểm tra kết nối.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <header class="card__header">
+          <div>
+            <h2>Chi tiết hội viên</h2>
+            <p>Chọn một hội viên để xem thêm thông tin.</p>
+          </div>
+        </header>
+        <div class="member-details" id="member-details">
+          <div class="placeholder">Chưa chọn hội viên nào.</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <header class="card__header">
+          <div>
+            <h2>Các gói VIP</h2>
+            <p>Sử dụng để tư vấn khách hàng phù hợp.</p>
+          </div>
+        </header>
+        <ul id="vip-plan-list" class="vip-plan-list">
+          <li class="placeholder">Đang tải thông tin gói VIP...</li>
+        </ul>
+      </section>
+    </main>
+
+    <dialog id="session-dialog">
+      <form method="dialog" class="session-form">
+        <h2>Đăng nhập quản trị</h2>
+        <p>
+          Hệ thống API demo yêu cầu bạn nhập <strong>ID người dùng quản trị</strong>.
+          Ứng dụng sẽ tự tạo token dạng <code>Bearer demo-&lt;ID&gt;</code> khi gọi API.
+        </p>
+        <label class="filter">
+          <span>ID quản trị viên</span>
+          <input id="admin-id-input" type="number" min="1" required />
+        </label>
+        <menu>
+          <button value="cancel" type="reset" class="ghost-button">Hủy</button>
+          <button value="confirm" class="primary">Lưu</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <template id="member-row-template">
+      <tr>
+        <td class="member-main">
+          <img class="avatar" alt="Ảnh đại diện" />
+          <div>
+            <span class="member-name"></span>
+            <span class="member-id"></span>
+          </div>
+        </td>
+        <td class="member-email"></td>
+        <td class="member-tier"></td>
+        <td class="member-expiry"></td>
+        <td class="member-request"></td>
+      </tr>
+    </template>
+
+    <template id="vip-plan-template">
+      <li>
+        <h3></h3>
+        <p class="plan-description"></p>
+        <dl>
+          <div>
+            <dt>Mã gói</dt>
+            <dd class="plan-code"></dd>
+          </div>
+          <div>
+            <dt>Chi phí</dt>
+            <dd class="plan-amount"></dd>
+          </div>
+          <div>
+            <dt>Thời hạn</dt>
+            <dd class="plan-duration"></dd>
+          </div>
+        </dl>
+      </li>
+    </template>
+
+    <script src="./admin.js" type="module"></script>
+  </body>
+</html>
