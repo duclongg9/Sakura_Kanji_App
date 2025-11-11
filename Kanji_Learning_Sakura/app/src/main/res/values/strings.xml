@@ -46,6 +46,7 @@
     <string name="desc_exam">Chọn tối đa 10 chữ Kanji rồi luyện ghép nghĩa ngẫu nhiên.</string>
     <string name="action_start_exam">Bắt đầu làm bài</string>
     <string name="msg_exam_requires_vip">Hãy sử dụng tài khoản trả phí hoặc nâng cấp VIP để mở khóa bài thi.</string>
+    <string name="msg_paid_content_requires_vip">Hãy sử dụng tài khoản trả phí hoặc nâng cấp VIP để mở khóa bài học này.</string>
     <string name="title_admin">Quản trị nội dung</string>
     <string name="desc_admin">Thêm level, bài học và Kanji mới cho người học.</string>
     <string name="dashboard_hero_title">Cùng nở rộ Kanji mỗi ngày</string>
@@ -119,6 +120,7 @@
     <string name="hint_level_name">Tên Level</string>
     <string name="hint_level_desc">Mô tả</string>
     <string name="hint_access_tier">Quyền truy cập</string>
+    <string name="level_paid_label">%1$s (VIP)</string>
     <string name="label_active">Kích hoạt</string>
     <string name="label_level_hidden">%1$s (Đang ẩn)</string>
     <string name="toast_level_updated">Đã cập nhật level %1$s</string>
@@ -145,6 +147,7 @@
     <string name="toast_no_question">Chưa có câu hỏi cho bài học này</string>
     <string name="toast_saved_kanji">Đã lưu Kanji %1$s</string>
     <string name="toast_created_level">Đã tạo level %1$s</string>
+    <string name="label_locked_lesson_placeholder">Nội dung VIP - hãy nâng cấp để tiếp tục</string>
     <string name="toast_created_lesson">Đã tạo bài học %1$s</string>
 
     <!-- Hồ sơ & ví -->
