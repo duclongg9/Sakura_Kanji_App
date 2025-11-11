@@ -208,6 +208,10 @@ function renderMemberDetails(member) {
   if (approveButton) {
     approveButton.addEventListener("click", () => approveRequest(member));
   }
+  const saveCodeButton = elements.detailsPanel.querySelector("#save-transaction-code");
+  if (saveCodeButton) {
+    saveCodeButton.addEventListener("click", () => saveTransactionCode(member));
+  }
 }
 
 /**
@@ -219,6 +223,17 @@ function renderPendingRequest(member) {
   }
   const requestDate = formatDate(member.requestCreatedAt, "Không rõ thời gian");
   const note = member.requestNote ? escapeHtml(member.requestNote) : "Không có ghi chú";
+  const receiptSection = member.requestReceiptUrl
+    ? `
+      <figure class="receipt-preview">
+        <img src="${member.requestReceiptUrl}" alt="Ảnh chứng từ chuyển khoản" loading="lazy" />
+        <figcaption>
+          <a href="${member.requestReceiptUrl}" target="_blank" rel="noopener">Mở ảnh chứng từ</a>
+        </figcaption>
+      </figure>
+    `
+    : `<p class="empty-receipt">Người dùng chưa tải ảnh chứng từ.</p>`;
+  const transactionCodeValue = member.requestTransactionCode ? escapeHtml(member.requestTransactionCode) : "";
   return `
     <div class="pending-request">
       <header>
@@ -226,7 +241,17 @@ function renderPendingRequest(member) {
         <time>Gửi lúc: ${requestDate}</time>
       </header>
       <p>${note}</p>
-      <button id="approve-request" class="primary" type="button">Phê duyệt yêu cầu</button>
+      ${receiptSection}
+      <div class="transaction-code">
+        <label>
+          <span>Mã chuyển khoản</span>
+          <input id="transaction-code-input" type="text" placeholder="Nhập mã do ngân hàng cung cấp" value="${transactionCodeValue}" />
+        </label>
+        <div class="transaction-actions">
+          <button id="save-transaction-code" class="ghost-button" type="button">Lưu mã chuyển khoản</button>
+          <button id="approve-request" class="primary" type="button">Phê duyệt yêu cầu</button>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -259,6 +284,58 @@ async function approveRequest(member) {
     await loadMembers();
     const refreshed = state.members.find((m) => Number(m.id) === Number(member.id));
     renderMemberDetails(refreshed);
+  } catch (error) {
+    console.error(error);
+    showToast(normalizeErrorMessage(error), "error");
+  }
+}
+
+/**
+ * Lưu mã chuyển khoản do quản trị viên nhập vào yêu cầu nâng cấp.
+ */
+async function saveTransactionCode(member) {
+  if (!member.requestId) {
+    showToast("Không tìm thấy mã yêu cầu để cập nhật", "error");
+    return;
+  }
+  const input = elements.detailsPanel.querySelector("#transaction-code-input");
+  if (!input) {
+    showToast("Không tìm thấy ô nhập mã chuyển khoản", "error");
+    return;
+  }
+
+  const payload = {
+    requestId: member.requestId,
+    transactionCode: valueOrNull(input.value),
+  };
+
+  let headers;
+  try {
+    headers = {
+      "Content-Type": "application/json",
+      ...buildAuthHeader(),
+    };
+  } catch (error) {
+    showToast(normalizeErrorMessage(error), "error");
+    return;
+  }
+
+  try {
+    const response = await fetch("../api/admin/upgrade-requests/transaction-code", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const data = await safeReadJson(response);
+      throw new Error(extractErrorMessage(data, `Không thể lưu mã (${response.status})`));
+    }
+
+    showToast("Đã cập nhật mã chuyển khoản", "success");
+    await loadMembers();
+    const refreshed = state.members.find((m) => Number(m.id) === Number(member.id));
+    renderMemberDetails(refreshed ?? member);
   } catch (error) {
     console.error(error);
     showToast(normalizeErrorMessage(error), "error");
@@ -801,7 +878,11 @@ function formatRequestStatus(member) {
   if (!member.hasPendingRequest) {
     return "Không có yêu cầu";
   }
-  return `${member.requestStatus ?? "PENDING"}`;
+  const status = `${member.requestStatus ?? "PENDING"}`;
+  if (member.requestTransactionCode) {
+    return `${status} · Mã: ${member.requestTransactionCode}`;
+  }
+  return status;
 }
 
 /**

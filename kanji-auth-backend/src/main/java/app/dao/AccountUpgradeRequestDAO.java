@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -45,17 +46,21 @@ public class AccountUpgradeRequestDAO extends BaseDAO {
      * @param currentRoleId role hiện tại.
      * @param targetRoleId  role mong muốn.
      * @param note          ghi chú thêm từ người dùng.
+     * @param receiptImage  tên file ảnh chứng từ (có thể null).
      * @return đối tượng {@link AccountUpgradeRequest} vừa tạo.
      * @throws SQLException lỗi khi ghi DB.
      */
-    public AccountUpgradeRequest create(long userId, int currentRoleId, int targetRoleId, String note) throws SQLException {
-        final String sql = "INSERT INTO AccountUpgradeRequest (user_id, currentRoleId, targetRoleId, note) VALUES (?,?,?,?)";
+    public AccountUpgradeRequest create(long userId, int currentRoleId, int targetRoleId, String note, String receiptImage)
+            throws SQLException {
+        final String sql = "INSERT INTO AccountUpgradeRequest (user_id, currentRoleId, targetRoleId, note, receiptImagePath) "
+                + "VALUES (?,?,?,?,?)";
         try (Connection connection = getConnection();
              PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setLong(1, userId);
             ps.setInt(2, currentRoleId);
             ps.setInt(3, targetRoleId);
             ps.setString(4, note);
+            ps.setString(5, receiptImage);
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
@@ -91,7 +96,8 @@ public class AccountUpgradeRequestDAO extends BaseDAO {
      * @throws SQLException lỗi truy vấn DB.
      */
     public AccountUpgradeRequest findLatestPendingByUser(long userId) throws SQLException {
-        final String sql = "SELECT request_id, user_id, currentRoleId, targetRoleId, note, status, createdAt, processedAt "
+        final String sql = "SELECT request_id, user_id, currentRoleId, targetRoleId, note, status, createdAt, processedAt, "
+                + "receiptImagePath, transactionCode "
                 + "FROM AccountUpgradeRequest WHERE user_id = ? AND status = 'PENDING' "
                 + "ORDER BY createdAt DESC LIMIT 1";
         try (Connection connection = getConnection();
@@ -143,7 +149,8 @@ public class AccountUpgradeRequestDAO extends BaseDAO {
     }
 
     private AccountUpgradeRequest findById(long id, Connection existing) throws SQLException {
-        final String sql = "SELECT request_id, user_id, currentRoleId, targetRoleId, note, status, createdAt, processedAt "
+        final String sql = "SELECT request_id, user_id, currentRoleId, targetRoleId, note, status, createdAt, processedAt, "
+                + "receiptImagePath, transactionCode "
                 + "FROM AccountUpgradeRequest WHERE request_id = ?";
         try (PreparedStatement ps = existing.prepareStatement(sql)) {
             ps.setLong(1, id);
@@ -166,6 +173,34 @@ public class AccountUpgradeRequestDAO extends BaseDAO {
         request.setStatus(rs.getString("status"));
         request.setCreatedAt(toLocalDateTime(rs.getTimestamp("createdAt")));
         request.setProcessedAt(toLocalDateTime(rs.getTimestamp("processedAt")));
+        request.setReceiptImagePath(rs.getString("receiptImagePath"));
+        request.setTransactionCode(rs.getString("transactionCode"));
         return request;
+    }
+
+    /**
+     * Cập nhật mã giao dịch cho yêu cầu nâng cấp.
+     *
+     * @param requestId       id yêu cầu cần cập nhật.
+     * @param transactionCode mã giao dịch mới (có thể null).
+     * @return bản ghi sau khi cập nhật hoặc {@code null} nếu không tìm thấy.
+     * @throws SQLException lỗi truy vấn DB.
+     */
+    public AccountUpgradeRequest updateTransactionCode(long requestId, String transactionCode) throws SQLException {
+        final String sql = "UPDATE AccountUpgradeRequest SET transactionCode = ? WHERE request_id = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            if (transactionCode == null) {
+                ps.setNull(1, Types.VARCHAR);
+            } else {
+                ps.setString(1, transactionCode);
+            }
+            ps.setLong(2, requestId);
+            int updated = ps.executeUpdate();
+            if (updated == 0) {
+                return null;
+            }
+            return findById(requestId, connection);
+        }
     }
 }

@@ -30,7 +30,7 @@ public class AdminMembershipDAO extends BaseDAO {
     public List<AdminMember> listMembers(String filter) throws SQLException {
         StringBuilder sql = new StringBuilder(
                 "SELECT u.id, u.userName, u.email, u.imgUrl, u.accountTier, u.vipExpiresAt, "
-                        + "r.request_id, r.status, r.note, r.createdAt "
+                        + "r.request_id, r.status, r.note, r.createdAt, r.receiptImagePath, r.transactionCode "
                         + "FROM `User` u "
                         + "LEFT JOIN AccountUpgradeRequest r ON r.user_id = u.id AND r.status = 'PENDING' "
                         + "WHERE u.roleId <> 1 ");
@@ -59,6 +59,8 @@ public class AdminMembershipDAO extends BaseDAO {
                     member.setRequestStatus(rs.getString("status"));
                     member.setRequestNote(rs.getString("note"));
                     member.setRequestCreatedAt(toLocalDateTime(rs.getTimestamp("createdAt")));
+                    member.setRequestReceiptImagePath(rs.getString("receiptImagePath"));
+                    member.setRequestTransactionCode(rs.getString("transactionCode"));
                     result.add(member);
                 }
                 return result;

@@ -286,8 +286,73 @@ body {
   font: inherit;
 }
 
-.pending-request button {
-  align-self: flex-end;
+.pending-request p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.pending-request .receipt-preview {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  max-width: 260px;
+  background: #fff;
+}
+
+.pending-request .receipt-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.pending-request .receipt-preview figcaption {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  background: var(--surface);
+}
+
+.pending-request .receipt-preview a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.pending-request .receipt-preview a:hover {
+  text-decoration: underline;
+}
+
+.pending-request .empty-receipt {
+  margin: 0;
+  font-style: italic;
+  color: var(--text-subtle);
+}
+
+.transaction-code {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.transaction-code label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.transaction-code span {
+  font-size: 0.85rem;
+  color: var(--text-subtle);
+}
+
+.transaction-code input {
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  font: inherit;
+}
+
+.transaction-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .vip-plan-list {

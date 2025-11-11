@@ -15,6 +15,8 @@ public class AccountUpgradeRequest {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime processedAt;
+    private String receiptImagePath;
+    private String transactionCode;
 
     public long getRequestId() {
         return requestId;
@@ -78,5 +80,41 @@ public class AccountUpgradeRequest {
 
     public void setProcessedAt(LocalDateTime processedAt) {
         this.processedAt = processedAt;
+    }
+
+    /**
+     * Đường dẫn ảnh chứng từ chuyển khoản được lưu trong hệ thống.
+     *
+     * @return tên file ảnh hoặc {@code null} nếu người dùng không tải lên.
+     */
+    public String getReceiptImagePath() {
+        return receiptImagePath;
+    }
+
+    /**
+     * Cập nhật đường dẫn ảnh chứng từ chuyển khoản.
+     *
+     * @param receiptImagePath tên file ảnh (không bao gồm thư mục).
+     */
+    public void setReceiptImagePath(String receiptImagePath) {
+        this.receiptImagePath = receiptImagePath;
+    }
+
+    /**
+     * Lấy mã giao dịch do quản trị viên cập nhật để đối chiếu thanh toán.
+     *
+     * @return mã giao dịch hoặc {@code null} nếu chưa được thiết lập.
+     */
+    public String getTransactionCode() {
+        return transactionCode;
+    }
+
+    /**
+     * Thiết lập mã giao dịch do quản trị viên nhập.
+     *
+     * @param transactionCode chuỗi mã giao dịch.
+     */
+    public void setTransactionCode(String transactionCode) {
+        this.transactionCode = transactionCode;
     }
 }
