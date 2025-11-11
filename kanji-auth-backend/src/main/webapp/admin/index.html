@@ -88,6 +88,151 @@
           <li class="placeholder">Đang tải thông tin gói VIP...</li>
         </ul>
       </section>
+
+      <section class="card card--stack">
+        <header class="card__header">
+          <div>
+            <h2>Quản lý level</h2>
+            <p>Thêm mới hoặc chỉnh sửa các level thuộc từng JLPT.</p>
+          </div>
+        </header>
+        <div class="card__body card__body--split">
+          <div class="card-panel">
+            <div class="panel-heading">
+              <h3>Danh sách level</h3>
+              <label class="filter">
+                <span>JLPT</span>
+                <select id="jlpt-filter"></select>
+              </label>
+            </div>
+            <div class="table-wrapper">
+              <table id="levels-table">
+                <thead>
+                  <tr>
+                    <th>Tên level</th>
+                    <th>JLPT</th>
+                    <th>Quyền truy cập</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="levels-tbody">
+                  <tr class="placeholder">
+                    <td colspan="5">Chọn JLPT để xem danh sách level.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card-panel">
+            <h3 id="level-form-title">Thêm level mới</h3>
+            <form id="level-form" class="form-grid">
+              <input type="hidden" id="level-id" />
+              <label class="filter">
+                <span>Tên level</span>
+                <input id="level-name" type="text" required placeholder="Ví dụ: Bài tập từ vựng 1" />
+              </label>
+              <label class="filter">
+                <span>JLPT</span>
+                <select id="level-jlpt-select" required></select>
+              </label>
+              <label class="filter">
+                <span>Mô tả</span>
+                <textarea id="level-description" rows="3" placeholder="Thông tin ngắn gọn về level"></textarea>
+              </label>
+              <label class="filter">
+                <span>Quyền truy cập</span>
+                <select id="level-access-tier">
+                  <option value="FREE">FREE</option>
+                  <option value="VIP">VIP</option>
+                  <option value="PREMIUM">PREMIUM</option>
+                </select>
+              </label>
+              <label class="toggle">
+                <input id="level-active" type="checkbox" checked />
+                <span>Hiển thị level này cho học viên</span>
+              </label>
+              <div class="form-actions">
+                <button type="button" id="level-cancel" class="ghost-button">Hủy</button>
+                <button type="submit" class="primary">Lưu level</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section class="card card--stack">
+        <header class="card__header">
+          <div>
+            <h2>Quản lý Kanji</h2>
+            <p>Quản trị bộ Kanji theo từng level, hỗ trợ thêm, sửa và xóa.</p>
+          </div>
+        </header>
+        <div class="card__body card__body--stacked">
+          <div class="card-panel">
+            <div class="panel-heading">
+              <h3>Danh sách Kanji</h3>
+              <label class="filter">
+                <span>Level</span>
+                <select id="kanji-level-select"></select>
+              </label>
+              <button type="button" id="reload-kanji" class="ghost-button ghost-button--small">Tải lại</button>
+            </div>
+            <div class="table-wrapper">
+              <table id="kanji-table">
+                <thead>
+                  <tr>
+                    <th>Kanji</th>
+                    <th>Hán Việt</th>
+                    <th>Âm On</th>
+                    <th>Âm Kun</th>
+                    <th>Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="kanji-tbody">
+                  <tr class="placeholder">
+                    <td colspan="5">Chọn level để xem danh sách Kanji.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card-panel">
+            <h3 id="kanji-form-title">Thêm Kanji mới</h3>
+            <form id="kanji-form" class="form-grid">
+              <input type="hidden" id="kanji-id" />
+              <label class="filter">
+                <span>Ký tự Kanji</span>
+                <input id="kanji-character" type="text" maxlength="5" required placeholder="Ví dụ: 学" />
+              </label>
+              <label class="filter">
+                <span>Hán Việt</span>
+                <input id="kanji-hanviet" type="text" placeholder="Ví dụ: HỌC" />
+              </label>
+              <label class="filter">
+                <span>Âm On</span>
+                <input id="kanji-on" type="text" placeholder="Ví dụ: ガク (gaku)" />
+              </label>
+              <label class="filter">
+                <span>Âm Kun</span>
+                <input id="kanji-kun" type="text" placeholder="Ví dụ: まなぶ (manabu)" />
+              </label>
+              <label class="filter">
+                <span>Mô tả</span>
+                <textarea id="kanji-description" rows="3" placeholder="Gợi ý, ví dụ hoặc ghi chú."></textarea>
+              </label>
+              <label class="filter">
+                <span>Thuộc level</span>
+                <select id="kanji-level-input"></select>
+              </label>
+              <div class="form-actions">
+                <button type="button" id="kanji-cancel" class="ghost-button">Hủy</button>
+                <button type="submit" class="primary">Lưu Kanji</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
     </main>
 
     <dialog id="session-dialog">
@@ -143,6 +288,32 @@
           </div>
         </dl>
       </li>
+    </template>
+
+    <template id="level-row-template">
+      <tr>
+        <td class="level-name"></td>
+        <td class="level-jlpt"></td>
+        <td class="level-tier"></td>
+        <td><span class="status-pill"></span></td>
+        <td class="row-actions">
+          <button type="button" class="table-action" data-action="edit">Sửa</button>
+          <button type="button" class="table-action danger" data-action="delete">Xóa</button>
+        </td>
+      </tr>
+    </template>
+
+    <template id="kanji-row-template">
+      <tr>
+        <td class="kanji-character"></td>
+        <td class="kanji-hanviet"></td>
+        <td class="kanji-on"></td>
+        <td class="kanji-kun"></td>
+        <td class="row-actions">
+          <button type="button" class="table-action" data-action="edit">Sửa</button>
+          <button type="button" class="table-action danger" data-action="delete">Xóa</button>
+        </td>
+      </tr>
     </template>
 
     <script src="./admin.js" type="module"></script>
