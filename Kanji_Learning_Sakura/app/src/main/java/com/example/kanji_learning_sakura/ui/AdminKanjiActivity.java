@@ -5,19 +5,28 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.example.kanji_learning_sakura.R;
 import com.example.kanji_learning_sakura.core.KanjiService;
 import com.example.kanji_learning_sakura.model.BulkImportReportDto;
 import com.example.kanji_learning_sakura.model.JlptLevelDto;
 import com.example.kanji_learning_sakura.model.KanjiDto;
 import com.example.kanji_learning_sakura.model.LevelDto;
+import com.example.kanji_learning_sakura.ui.adapter.AdminKanjiAdapter;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import java.io.ByteArrayOutputStream;
@@ -40,6 +49,12 @@ public class AdminKanjiActivity extends AppCompatActivity {
     private TextInputEditText edtOn;
     private TextInputEditText edtKun;
     private TextInputEditText edtDescription;
+    private RecyclerView rvKanji;
+    private AdminKanjiAdapter adapter;
+    private CircularProgressIndicator progressKanji;
+    private TextView tvEmpty;
+    private CharSequence emptyMessage;
+    private LevelDto currentLevel;
 
     private final ActivityResultLauncher<Intent> refreshLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> reloadLevels());
@@ -53,6 +68,9 @@ public class AdminKanjiActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin_kanji);
         service = new KanjiService(this);
 
+        MaterialToolbar toolbar = findViewById(R.id.toolbarAdmin);
+        toolbar.setNavigationOnClickListener(v -> finish());
+
         spJlpt = findViewById(R.id.spAdminJlpt);
         spLevel = findViewById(R.id.spAdminLevel);
         edtKanji = findViewById(R.id.edtKanji);
@@ -64,12 +82,37 @@ public class AdminKanjiActivity extends AppCompatActivity {
         MaterialButton btnCreateLevel = findViewById(R.id.btnCreateLevel);
         MaterialButton btnCreateLesson = findViewById(R.id.btnCreateLesson);
         MaterialButton btnImportCsv = findViewById(R.id.btnImportCsv);
+        rvKanji = findViewById(R.id.rvKanji);
+        progressKanji = findViewById(R.id.progressKanji);
+        tvEmpty = findViewById(R.id.tvEmpty);
+        emptyMessage = tvEmpty.getText();
+
+        rvKanji.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new AdminKanjiAdapter(new AdminKanjiAdapter.Listener() {
+            @Override
+            public void onEdit(@NonNull KanjiDto item) {
+                showEditDialog(item);
+            }
+
+            @Override
+            public void onDelete(@NonNull KanjiDto item) {
+                confirmDelete(item);
+            }
+        });
+        rvKanji.setAdapter(adapter);
 
         loadJlpt();
 
         spJlpt.setOnItemClickListener((parent, view, position, id) -> {
             if (position >= 0 && position < jlptLevels.size()) {
                 loadLevels(jlptLevels.get(position).getId());
+            }
+        });
+
+        spLevel.setOnItemClickListener((parent, view, position, id) -> {
+            if (position >= 0 && position < levels.size()) {
+                currentLevel = levels.get(position);
+                loadKanji(currentLevel);
             }
         });
 
@@ -106,8 +149,9 @@ public class AdminKanjiActivity extends AppCompatActivity {
                             android.R.layout.simple_list_item_1,
                             toJlptNames(data)));
                     if (!data.isEmpty()) {
-                        loadLevels(data.get(0).getId());
-                        spJlpt.setText(data.get(0).getNameLevel(), false);
+                        JlptLevelDto first = data.get(0);
+                        loadLevels(first.getId());
+                        spJlpt.setText(first.getNameLevel(), false);
                     }
                 });
             } catch (Exception ex) {
@@ -126,6 +170,15 @@ public class AdminKanjiActivity extends AppCompatActivity {
                     spLevel.setAdapter(new ArrayAdapter<>(this,
                             android.R.layout.simple_list_item_1,
                             toLevelNames(data)));
+                    if (!data.isEmpty()) {
+                        currentLevel = data.get(0);
+                        spLevel.setText(currentLevel.getName(), false);
+                        loadKanji(currentLevel);
+                    } else {
+                        currentLevel = null;
+                        adapter.submitList(new ArrayList<>());
+                        showEmptyState(true, emptyMessage.toString());
+                    }
                     spLevel.showDropDown();
                 });
             } catch (Exception ex) {
@@ -169,6 +222,7 @@ public class AdminKanjiActivity extends AppCompatActivity {
                     edtOn.setText("");
                     edtKun.setText("");
                     edtDescription.setText("");
+                    loadKanji(level);
                 });
             } catch (Exception ex) {
                 runOnUiThread(() -> toast(ex.getMessage()));
@@ -261,6 +315,123 @@ public class AdminKanjiActivity extends AppCompatActivity {
             toast(getString(R.string.toast_import_completed_with_errors, report.getErrors().size()));
         }
         reloadLevels();
+    }
+
+    private void loadKanji(LevelDto level) {
+        setKanjiLoading(true);
+        new Thread(() -> {
+            try {
+                List<KanjiDto> data = service.getKanjiByLevel(level.getId());
+                runOnUiThread(() -> {
+                    setKanjiLoading(false);
+                    adapter.submitList(data);
+                    showEmptyState(data.isEmpty(), emptyMessage.toString());
+                });
+            } catch (Exception ex) {
+                runOnUiThread(() -> {
+                    setKanjiLoading(false);
+                    showEmptyState(true, getString(R.string.toast_load_kanji_failed, ex.getMessage()));
+                    toast(getString(R.string.toast_load_kanji_failed, ex.getMessage()));
+                });
+            }
+        }).start();
+    }
+
+    private void setKanjiLoading(boolean loading) {
+        progressKanji.setVisibility(loading ? View.VISIBLE : View.GONE);
+        rvKanji.setAlpha(loading ? 0.3f : 1f);
+    }
+
+    private void showEmptyState(boolean show, String message) {
+        tvEmpty.setText(message);
+        tvEmpty.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    private void showEditDialog(KanjiDto item) {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_edit_kanji, null, false);
+        TextInputEditText edtDialogKanji = view.findViewById(R.id.edtDialogKanji);
+        TextInputEditText edtDialogHanViet = view.findViewById(R.id.edtDialogHanViet);
+        TextInputEditText edtDialogOn = view.findViewById(R.id.edtDialogOn);
+        TextInputEditText edtDialogKun = view.findViewById(R.id.edtDialogKun);
+        TextInputEditText edtDialogDescription = view.findViewById(R.id.edtDialogDescription);
+
+        edtDialogKanji.setText(item.getCharacter());
+        edtDialogHanViet.setText(item.getHanViet());
+        edtDialogOn.setText(item.getOnReading());
+        edtDialogKun.setText(item.getKunReading());
+        edtDialogDescription.setText(item.getDescription());
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_edit_kanji_title)
+                .setView(view)
+                .setPositiveButton(R.string.dialog_edit_kanji_positive, (dialog, which) -> {
+                    String newChar = textOf(edtDialogKanji);
+                    if (newChar.isEmpty()) {
+                        toast(getString(R.string.hint_kanji_char));
+                        return;
+                    }
+                    String newHan = textOf(edtDialogHanViet);
+                    String newOn = textOf(edtDialogOn);
+                    String newKun = textOf(edtDialogKun);
+                    String newDesc = textOf(edtDialogDescription);
+                    LevelDto level = currentLevel != null ? currentLevel : getSelectedLevel();
+                    Integer levelId = level != null ? level.getId() : null;
+                    updateKanji(item.getId(), newChar, newHan, newOn, newKun, newDesc, levelId);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void updateKanji(long id, String character, String hanViet, String on, String kun,
+                              String description, Integer levelId) {
+        setKanjiLoading(true);
+        new Thread(() -> {
+            try {
+                KanjiDto dto = service.updateKanji(id, character, hanViet, on, kun, description, levelId);
+                runOnUiThread(() -> {
+                    setKanjiLoading(false);
+                    toast(getString(R.string.toast_update_kanji, dto.getCharacter()));
+                    if (currentLevel != null) {
+                        loadKanji(currentLevel);
+                    }
+                });
+            } catch (Exception ex) {
+                runOnUiThread(() -> {
+                    setKanjiLoading(false);
+                    toast(ex.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    private void confirmDelete(KanjiDto item) {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_delete_kanji_title)
+                .setMessage(getString(R.string.dialog_delete_kanji_message, item.getCharacter()))
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> deleteKanji(item.getId()))
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void deleteKanji(long id) {
+        setKanjiLoading(true);
+        new Thread(() -> {
+            try {
+                service.deleteKanji(id);
+                runOnUiThread(() -> {
+                    setKanjiLoading(false);
+                    toast(getString(R.string.toast_delete_kanji));
+                    if (currentLevel != null) {
+                        loadKanji(currentLevel);
+                    }
+                });
+            } catch (Exception ex) {
+                runOnUiThread(() -> {
+                    setKanjiLoading(false);
+                    toast(ex.getMessage());
+                });
+            }
+        }).start();
     }
 
     private LevelDto getSelectedLevel() {

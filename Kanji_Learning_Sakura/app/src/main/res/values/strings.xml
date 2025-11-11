@@ -61,6 +61,21 @@
     <!-- Label for triggering the CSV import flow in the admin Kanji screen -->
     <string name="label_import_csv">Import CSV</string>
     <string name="label_save_kanji">Lưu Kanji</string>
+    <string name="title_admin_dashboard">Quản trị Sakura</string>
+    <string name="title_manage_kanji">Quản lý Kanji</string>
+    <string name="description_admin_form">Chọn JLPT và level trước khi thêm mới chữ Kanji.</string>
+    <string name="title_kanji_list">Danh sách Kanji đã có</string>
+    <string name="description_kanji_list">Chạm để chỉnh sửa hoặc xóa khi cần cập nhật nội dung.</string>
+    <string name="empty_kanji">Chưa có Kanji cho level này.</string>
+    <string name="action_edit">Chỉnh sửa</string>
+    <string name="action_delete">Xóa</string>
+    <string name="dialog_edit_kanji_title">Chỉnh sửa Kanji</string>
+    <string name="dialog_edit_kanji_positive">Cập nhật</string>
+    <string name="dialog_delete_kanji_title">Xóa Kanji</string>
+    <string name="dialog_delete_kanji_message">Bạn có chắc chắn muốn xóa %1$s? Hành động này không thể hoàn tác.</string>
+    <string name="toast_update_kanji">Đã cập nhật Kanji %1$s</string>
+    <string name="toast_delete_kanji">Đã xóa Kanji thành công</string>
+    <string name="toast_load_kanji_failed">Không tải được Kanji: %1$s</string>
     <string name="hint_kanji_char">Ký tự Kanji</string>
     <string name="hint_hanviet">Hán Việt</string>
     <string name="hint_on_reading">Âm On</string>
@@ -110,6 +125,10 @@
     <string name="toast_import_success">Đã import Kanji thành công!</string>
     <string name="toast_import_completed_with_errors">Import hoàn tất nhưng có %1$d dòng lỗi</string>
     <string name="toast_import_failed">Import thất bại: %1$s</string>
+    <string name="kanji_field_missing">(chưa có)</string>
+    <string name="kanji_hanviet_format">Hán Việt: %1$s</string>
+    <string name="kanji_readings_format">Âm On: %1$s • Âm Kun: %2$s</string>
+    <string name="kanji_description_label">Ghi chú: %1$s</string>
 
     <string name="momo_title">Thanh toán VIP</string>
     <string name="momo_description">Chọn gói và thanh toán qua MoMo để mở khóa toàn bộ bài học VIP ngay lập tức.</string>
