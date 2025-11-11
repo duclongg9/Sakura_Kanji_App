@@ -20,12 +20,17 @@ import com.example.kanji_learning_sakura.R;
 import com.example.kanji_learning_sakura.core.KanjiService;
 import com.example.kanji_learning_sakura.model.BulkImportReportDto;
 import com.example.kanji_learning_sakura.model.JlptLevelDto;
+import com.example.kanji_learning_sakura.model.AdminMemberDto;
 import com.example.kanji_learning_sakura.model.KanjiDto;
 import com.example.kanji_learning_sakura.model.LevelDto;
+import com.example.kanji_learning_sakura.model.VipPlanDto;
 import com.example.kanji_learning_sakura.ui.adapter.AdminKanjiAdapter;
+import com.example.kanji_learning_sakura.ui.adapter.AdminMemberAdapter;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -33,6 +38,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 /**
  * Màn hình quản trị thêm Kanji.
@@ -55,6 +62,14 @@ public class AdminKanjiActivity extends AppCompatActivity {
     private TextView tvEmpty;
     private CharSequence emptyMessage;
     private LevelDto currentLevel;
+    private ChipGroup chipVipPlans;
+    private ChipGroup chipMemberFilter;
+    private RecyclerView rvMembers;
+    private AdminMemberAdapter memberAdapter;
+    private CircularProgressIndicator progressMembers;
+    private TextView tvMembersEmpty;
+    private final List<VipPlanDto> vipPlans = new ArrayList<>();
+    private String currentMemberFilter = "";
 
     private final ActivityResultLauncher<Intent> refreshLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> reloadLevels());
@@ -86,6 +101,11 @@ public class AdminKanjiActivity extends AppCompatActivity {
         progressKanji = findViewById(R.id.progressKanji);
         tvEmpty = findViewById(R.id.tvEmpty);
         emptyMessage = tvEmpty.getText();
+        chipVipPlans = findViewById(R.id.chipVipPlans);
+        chipMemberFilter = findViewById(R.id.chipMemberFilter);
+        rvMembers = findViewById(R.id.rvAdminMembers);
+        progressMembers = findViewById(R.id.progressMembers);
+        tvMembersEmpty = findViewById(R.id.tvMembersEmpty);
 
         rvKanji.setLayoutManager(new LinearLayoutManager(this));
         adapter = new AdminKanjiAdapter(new AdminKanjiAdapter.Listener() {
@@ -101,7 +121,13 @@ public class AdminKanjiActivity extends AppCompatActivity {
         });
         rvKanji.setAdapter(adapter);
 
+        rvMembers.setLayoutManager(new LinearLayoutManager(this));
+        memberAdapter = new AdminMemberAdapter();
+        rvMembers.setAdapter(memberAdapter);
+
+        loadVipPlans();
         loadJlpt();
+        loadMembers(currentMemberFilter);
 
         spJlpt.setOnItemClickListener((parent, view, position, id) -> {
             if (position >= 0 && position < jlptLevels.size()) {
@@ -136,6 +162,12 @@ public class AdminKanjiActivity extends AppCompatActivity {
             refreshLauncher.launch(intent);
         });
         btnImportCsv.setOnClickListener(v -> csvPicker.launch("text/*"));
+
+        chipMemberFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            int checkedId = checkedIds.isEmpty() ? View.NO_ID : checkedIds.get(0);
+            currentMemberFilter = filterForChip(checkedId);
+            loadMembers(currentMemberFilter);
+        });
     }
 
     private void loadJlpt() {
@@ -347,6 +379,89 @@ public class AdminKanjiActivity extends AppCompatActivity {
         tvEmpty.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
+    private String filterForChip(int chipId) {
+        if (chipId == R.id.chipFilterPending) {
+            return "pending";
+        }
+        if (chipId == R.id.chipFilterVip) {
+            return "vip";
+        }
+        if (chipId == R.id.chipFilterFree) {
+            return "free";
+        }
+        return "";
+    }
+
+    private void loadVipPlans() {
+        new Thread(() -> {
+            try {
+                List<VipPlanDto> data = service.getVipPlans();
+                runOnUiThread(() -> renderVipPlans(data));
+            } catch (Exception ex) {
+                runOnUiThread(() -> toast(getString(R.string.toast_load_plans_failed, ex.getMessage())));
+            }
+        }).start();
+    }
+
+    private void renderVipPlans(List<VipPlanDto> plans) {
+        vipPlans.clear();
+        vipPlans.addAll(plans);
+        chipVipPlans.removeAllViews();
+        LayoutInflater inflater = LayoutInflater.from(this);
+        if (plans.isEmpty()) {
+            Chip chip = (Chip) inflater.inflate(R.layout.chip_vip_plan, chipVipPlans, false);
+            chip.setText(R.string.member_plan_empty);
+            chipVipPlans.addView(chip);
+            return;
+        }
+        for (VipPlanDto plan : plans) {
+            Chip chip = (Chip) inflater.inflate(R.layout.chip_vip_plan, chipVipPlans, false);
+            String description = plan.getDescription() != null && !plan.getDescription().isEmpty()
+                    ? plan.getDescription()
+                    : plan.getCode();
+            chip.setText(getString(R.string.member_plan_format, description, formatCurrency(plan.getAmount())));
+            chipVipPlans.addView(chip);
+        }
+    }
+
+    private void loadMembers(String filter) {
+        setMembersLoading(true);
+        new Thread(() -> {
+            try {
+                List<AdminMemberDto> data = service.getAdminMembers(filter);
+                runOnUiThread(() -> {
+                    setMembersLoading(false);
+                    memberAdapter.submitList(data);
+                    showMembersEmptyState(data.isEmpty(), getString(R.string.empty_members));
+                });
+            } catch (Exception ex) {
+                runOnUiThread(() -> {
+                    setMembersLoading(false);
+                    showMembersEmptyState(true, getString(R.string.toast_load_members_failed, ex.getMessage()));
+                    toast(getString(R.string.toast_load_members_failed, ex.getMessage()));
+                });
+            }
+        }).start();
+    }
+
+    private void setMembersLoading(boolean loading) {
+        progressMembers.setVisibility(loading ? View.VISIBLE : View.GONE);
+        rvMembers.setAlpha(loading ? 0.3f : 1f);
+    }
+
+    private void showMembersEmptyState(boolean show, String message) {
+        tvMembersEmpty.setText(message);
+        tvMembersEmpty.setVisibility(show ? View.VISIBLE : View.GONE);
+        rvMembers.setVisibility(show ? View.INVISIBLE : View.VISIBLE);
+    }
+
+    private String formatCurrency(double amount) {
+        NumberFormat format = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        format.setMaximumFractionDigits(0);
+        format.setMinimumFractionDigits(0);
+        return format.format(amount);
+    }
+
     private void showEditDialog(KanjiDto item) {
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_edit_kanji, null, false);
         TextInputEditText edtDialogKanji = view.findViewById(R.id.edtDialogKanji);
@@ -354,12 +469,38 @@ public class AdminKanjiActivity extends AppCompatActivity {
         TextInputEditText edtDialogOn = view.findViewById(R.id.edtDialogOn);
         TextInputEditText edtDialogKun = view.findViewById(R.id.edtDialogKun);
         TextInputEditText edtDialogDescription = view.findViewById(R.id.edtDialogDescription);
+        MaterialAutoCompleteTextView spDialogLevel = view.findViewById(R.id.spDialogLevel);
 
         edtDialogKanji.setText(item.getCharacter());
         edtDialogHanViet.setText(item.getHanViet());
         edtDialogOn.setText(item.getOnReading());
         edtDialogKun.setText(item.getKunReading());
         edtDialogDescription.setText(item.getDescription());
+
+        List<LevelDto> selectableLevels = new ArrayList<>();
+        selectableLevels.add(null);
+        selectableLevels.addAll(levels);
+        List<String> levelNames = new ArrayList<>();
+        levelNames.add(getString(R.string.label_no_level));
+        levelNames.addAll(toLevelNames(levels));
+        spDialogLevel.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, levelNames));
+        LevelDto initialLevel = findLevelById(item.getLevelId());
+        if (initialLevel == null) {
+            initialLevel = currentLevel != null ? currentLevel : getSelectedLevel();
+        }
+        int initialIndex = 0;
+        if (initialLevel != null) {
+            for (int i = 1; i < selectableLevels.size(); i++) {
+                LevelDto level = selectableLevels.get(i);
+                if (level != null && level.getId() == initialLevel.getId()) {
+                    initialIndex = i;
+                    break;
+                }
+            }
+        }
+        spDialogLevel.setText(levelNames.get(initialIndex), false);
+        final LevelDto[] selectedLevelHolder = new LevelDto[]{selectableLevels.get(initialIndex)};
+        spDialogLevel.setOnItemClickListener((parent, v1, position, id) -> selectedLevelHolder[0] = selectableLevels.get(position));
 
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.dialog_edit_kanji_title)
@@ -374,7 +515,7 @@ public class AdminKanjiActivity extends AppCompatActivity {
                     String newOn = textOf(edtDialogOn);
                     String newKun = textOf(edtDialogKun);
                     String newDesc = textOf(edtDialogDescription);
-                    LevelDto level = currentLevel != null ? currentLevel : getSelectedLevel();
+                    LevelDto level = selectedLevelHolder[0];
                     Integer levelId = level != null ? level.getId() : null;
                     updateKanji(item.getId(), newChar, newHan, newOn, newKun, newDesc, levelId);
                 })
@@ -452,6 +593,18 @@ public class AdminKanjiActivity extends AppCompatActivity {
         }
         if (index >= 0 && index < levels.size()) {
             return levels.get(index);
+        }
+        return null;
+    }
+
+    private LevelDto findLevelById(Integer id) {
+        if (id == null) {
+            return null;
+        }
+        for (LevelDto level : levels) {
+            if (level.getId() == id) {
+                return level;
+            }
         }
         return null;
     }
