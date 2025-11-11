@@ -8,11 +8,13 @@ import android.provider.OpenableColumns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,6 +33,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -94,6 +97,7 @@ public class AdminKanjiActivity extends AppCompatActivity {
         edtKun = findViewById(R.id.edtKun);
         edtDescription = findViewById(R.id.edtDescription);
         MaterialButton btnSave = findViewById(R.id.btnSaveKanji);
+        MaterialButton btnEditLevel = findViewById(R.id.btnEditLevel);
         MaterialButton btnCreateLevel = findViewById(R.id.btnCreateLevel);
         MaterialButton btnCreateLesson = findViewById(R.id.btnCreateLesson);
         MaterialButton btnImportCsv = findViewById(R.id.btnImportCsv);
@@ -143,6 +147,8 @@ public class AdminKanjiActivity extends AppCompatActivity {
         });
 
         btnSave.setOnClickListener(v -> saveKanji());
+        btnEditLevel.setOnClickListener(v -> showEditLevelDialog());
+
         btnCreateLevel.setOnClickListener(v -> {
             Intent intent = new Intent(this, CreateLevelActivity.class);
             refreshLauncher.launch(intent);
@@ -195,7 +201,7 @@ public class AdminKanjiActivity extends AppCompatActivity {
     private void loadLevels(int jlptId) {
         new Thread(() -> {
             try {
-                List<LevelDto> data = service.getLevels(jlptId);
+                List<LevelDto> data = service.getLevels(jlptId, true);
                 runOnUiThread(() -> {
                     levels.clear();
                     levels.addAll(data);
@@ -204,7 +210,7 @@ public class AdminKanjiActivity extends AppCompatActivity {
                             toLevelNames(data)));
                     if (!data.isEmpty()) {
                         currentLevel = data.get(0);
-                        spLevel.setText(currentLevel.getName(), false);
+                        spLevel.setText(levelDisplayName(currentLevel), false);
                         loadKanji(currentLevel);
                     } else {
                         currentLevel = null;
@@ -444,6 +450,98 @@ public class AdminKanjiActivity extends AppCompatActivity {
         }).start();
     }
 
+    /**
+     * Hiển thị dialog chỉnh sửa tên và trạng thái level hiện tại.
+     */
+    private void showEditLevelDialog() {
+        LevelDto selected = getSelectedLevel();
+        if (selected == null) {
+            toast(getString(R.string.hint_select_level_optional));
+            return;
+        }
+
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_edit_level, null, false);
+        TextInputEditText edtName = view.findViewById(R.id.edtLevelEditName);
+        TextInputEditText edtDescription = view.findViewById(R.id.edtLevelEditDescription);
+        MaterialSwitch switchActive = view.findViewById(R.id.switchLevelActive);
+
+        edtName.setText(selected.getName());
+        if (selected.getDescription() != null) {
+            edtDescription.setText(selected.getDescription());
+        }
+        switchActive.setChecked(selected.isActive());
+
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_edit_level_title)
+                .setView(view)
+                .setNegativeButton(android.R.string.cancel, (d, which) -> d.dismiss())
+                .setPositiveButton(R.string.label_save_level, null)
+                .create();
+        dialog.setOnShowListener(dlg -> {
+            Button positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            positive.setOnClickListener(v -> {
+                String newName = textOf(edtName);
+                String newDescription = textOf(edtDescription);
+                if (newName.isEmpty()) {
+                    edtName.setError(getString(R.string.toast_level_name_required));
+                    return;
+                }
+                edtName.setError(null);
+                positive.setEnabled(false);
+                new Thread(() -> {
+                    try {
+                        LevelDto updated = service.updateLevel(
+                                selected.getId(),
+                                newName,
+                                selected.getJlptLevelId(),
+                                newDescription.isEmpty() ? null : newDescription,
+                                selected.getAccessTier(),
+                                switchActive.isChecked());
+                        runOnUiThread(() -> {
+                            updateLevelInList(updated);
+                            dialog.dismiss();
+                            toast(getString(R.string.toast_level_updated, updated.getName()));
+                        });
+                    } catch (Exception ex) {
+                        runOnUiThread(() -> {
+                            positive.setEnabled(true);
+                            String message = ex.getMessage();
+                            if (message == null || message.trim().isEmpty()) {
+                                message = getString(R.string.msg_network_error);
+                            }
+                            toast(getString(R.string.toast_level_update_failed, message));
+                        });
+                    }
+                }).start();
+            });
+        });
+        dialog.show();
+    }
+
+    /**
+     * Cập nhật danh sách level trong spinner sau khi chỉnh sửa.
+     */
+    private void updateLevelInList(@NonNull LevelDto updated) {
+        boolean found = false;
+        for (int i = 0; i < levels.size(); i++) {
+            if (levels.get(i).getId() == updated.getId()) {
+                levels.set(i, updated);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            levels.add(updated);
+        }
+        ArrayAdapter<String> adapterLevel = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1,
+                toLevelNames(levels));
+        spLevel.setAdapter(adapterLevel);
+        currentLevel = updated;
+        spLevel.setText(levelDisplayName(updated), false);
+        loadKanji(updated);
+    }
+
     private void setMembersLoading(boolean loading) {
         progressMembers.setVisibility(loading ? View.VISIBLE : View.GONE);
         rvMembers.setAlpha(loading ? 0.3f : 1f);
@@ -617,7 +715,8 @@ public class AdminKanjiActivity extends AppCompatActivity {
             String text = spLevel.getText() != null ? spLevel.getText().toString() : null;
             if (text != null) {
                 for (int i = 0; i < levels.size(); i++) {
-                    if (text.equals(levels.get(i).getName())) {
+                    LevelDto candidate = levels.get(i);
+                    if (text.equals(candidate.getName()) || text.equals(levelDisplayName(candidate))) {
                         index = i;
                         break;
                     }
@@ -656,9 +755,13 @@ public class AdminKanjiActivity extends AppCompatActivity {
     private List<String> toLevelNames(List<LevelDto> items) {
         List<String> result = new ArrayList<>();
         for (LevelDto dto : items) {
-            result.add(dto.getName());
+            result.add(levelDisplayName(dto));
         }
         return result;
+    }
+
+    private String levelDisplayName(@NonNull LevelDto dto) {
+        return dto.isActive() ? dto.getName() : getString(R.string.label_level_hidden, dto.getName());
     }
 
     private String textOf(TextInputEditText editText) {

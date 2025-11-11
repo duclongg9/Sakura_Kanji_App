@@ -229,8 +229,24 @@ public class KanjiService {
      * @throws Exception nếu request thất bại.
      */
     public List<LevelDto> getLevels(int jlptId) throws Exception {
+        return getLevels(jlptId, false);
+    }
+
+    /**
+     * Tải danh sách level với tùy chọn bao gồm level đã ẩn.
+     *
+     * @param jlptId         id JLPT đã chọn.
+     * @param includeInactive {@code true} nếu muốn nhận cả level đã bị tắt hiển thị.
+     * @return danh sách level.
+     * @throws Exception nếu request thất bại.
+     */
+    public List<LevelDto> getLevels(int jlptId, boolean includeInactive) throws Exception {
+        String url = baseUrl + "/api/levels?jlptId=" + jlptId;
+        if (includeInactive) {
+            url += "&includeInactive=true";
+        }
         Request request = new Request.Builder()
-                .url(baseUrl + "/api/levels?jlptId=" + jlptId)
+                .url(url)
                 .get()
                 .build();
         try (Response response = client.newCall(request).execute()) {

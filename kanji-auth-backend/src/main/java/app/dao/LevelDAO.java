@@ -23,13 +23,22 @@ public class LevelDAO extends BaseDAO {
 
     /**
      * Lấy danh sách level theo JLPT.
+     *
+     * @param jlptId         id của cấp JLPT cần lấy.
+     * @param includeInactive {@code true} nếu muốn bao gồm cả level đã ẩn.
+     * @return danh sách level.
+     * @throws SQLException nếu truy vấn thất bại.
      */
-    public List<Level> findByJlpt(int jlptId) throws SQLException {
-        final String sql = "SELECT id, name, jlptLevelId, description, isActive, accessTier, createdAt, updatedAt "
-                + "FROM Level WHERE jlptLevelId = ? ORDER BY name";
+    public List<Level> findByJlpt(int jlptId, boolean includeInactive) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT id, name, jlptLevelId, description, isActive, accessTier, createdAt, updatedAt "
+                + "FROM Level WHERE jlptLevelId = ? ");
+        if (!includeInactive) {
+            sql.append("AND isActive = 1 ");
+        }
+        sql.append("ORDER BY name");
         List<Level> levels = new ArrayList<>();
         try (Connection connection = getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
+             PreparedStatement ps = connection.prepareStatement(sql.toString())) {
             ps.setInt(1, jlptId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -38,6 +47,13 @@ public class LevelDAO extends BaseDAO {
             }
         }
         return levels;
+    }
+
+    /**
+     * Lấy danh sách level theo JLPT, chỉ trả về level đang hoạt động.
+     */
+    public List<Level> findByJlpt(int jlptId) throws SQLException {
+        return findByJlpt(jlptId, false);
     }
 
     /**

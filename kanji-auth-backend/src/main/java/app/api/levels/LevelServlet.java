@@ -26,6 +26,7 @@ public class LevelServlet extends HttpServlet {
         resp.setContentType("application/json;charset=UTF-8");
         String idParam = req.getParameter("id");
         String jlptIdParam = req.getParameter("jlptId");
+        boolean includeInactive = Boolean.parseBoolean(req.getParameter("includeInactive"));
         LevelDAO dao = new LevelDAO();
         try {
             if (idParam != null) {
@@ -44,7 +45,7 @@ public class LevelServlet extends HttpServlet {
                 return;
             }
             int jlptId = Integer.parseInt(jlptIdParam);
-            List<Level> levels = dao.findByJlpt(jlptId);
+            List<Level> levels = dao.findByJlpt(jlptId, includeInactive);
             JSONArray array = new JSONArray();
             for (Level level : levels) {
                 array.put(toJson(level));

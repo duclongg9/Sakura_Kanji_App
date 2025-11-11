@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         MaterialCardView cardLearn = findViewById(R.id.cardLearn);
         MaterialCardView cardQuiz = findViewById(R.id.cardQuiz);
         MaterialCardView cardAdmin = findViewById(R.id.cardAdmin);
+        MaterialCardView cardExam = findViewById(R.id.cardExam);
 
         refreshDashboard();
 
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
         cardLearn.setOnClickListener(v -> startActivity(new Intent(this, KanjiBrowserActivity.class)));
         cardQuiz.setOnClickListener(v -> startActivity(new Intent(this, QuizSetupActivity.class)));
+        cardExam.setOnClickListener(v -> startActivity(new Intent(this, ExamSetupActivity.class)));
 
         if (authPrefs.roleId() == 1) {
             cardAdmin.setVisibility(View.VISIBLE);
