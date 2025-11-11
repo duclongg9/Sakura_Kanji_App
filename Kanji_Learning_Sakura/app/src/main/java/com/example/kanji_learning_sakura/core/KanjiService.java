@@ -1,6 +1,7 @@
 package com.example.kanji_learning_sakura.core;
 
 import android.content.Context;
+import com.example.kanji_learning_sakura.model.AdminMemberDto;
 import com.example.kanji_learning_sakura.model.AuthResponseDto;
 import com.example.kanji_learning_sakura.model.BulkImportReportDto;
 import com.example.kanji_learning_sakura.model.BulkImportReportDto.RowError;
@@ -13,7 +14,10 @@ import com.example.kanji_learning_sakura.model.MomoPaymentStatusDto;
 import com.example.kanji_learning_sakura.model.ProfileDto;
 import com.example.kanji_learning_sakura.model.QuizChoiceDto;
 import com.example.kanji_learning_sakura.model.QuizQuestionDto;
+import com.example.kanji_learning_sakura.model.VipPlanDto;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import okhttp3.MediaType;
@@ -695,6 +699,78 @@ public class KanjiService {
             dto.setVipActivated(obj.optBoolean("vipActivated", false));
             dto.setVipExpiresAt(obj.isNull("vipExpiresAt") ? null : obj.optString("vipExpiresAt", null));
             return dto;
+        }
+    }
+
+    /**
+     * Lấy danh sách gói VIP và giá tương ứng để hiển thị trên dashboard admin.
+     *
+     * @return danh sách {@link VipPlanDto}.
+     * @throws Exception nếu backend phản hồi lỗi.
+     */
+    public List<VipPlanDto> getVipPlans() throws Exception {
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/admin/vip-plans")
+                .get()
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String body = readBodyOrThrow(response);
+            JSONArray array = new JSONArray(body.isBlank() ? "[]" : body);
+            List<VipPlanDto> plans = new ArrayList<>();
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject obj = array.optJSONObject(i);
+                if (obj == null) {
+                    continue;
+                }
+                VipPlanDto dto = new VipPlanDto();
+                dto.setCode(obj.optString("code"));
+                dto.setDescription(obj.optString("description"));
+                dto.setAmount(obj.optDouble("amount", 0));
+                plans.add(dto);
+            }
+            return plans;
+        }
+    }
+
+    /**
+     * Truy vấn danh sách hội viên phục vụ màn quản trị.
+     *
+     * @param filter bộ lọc cần áp dụng (null hoặc rỗng nghĩa là tất cả).
+     * @return danh sách hội viên.
+     * @throws Exception nếu request thất bại.
+     */
+    public List<AdminMemberDto> getAdminMembers(String filter) throws Exception {
+        String url = baseUrl + "/api/admin/members";
+        if (filter != null && !filter.isEmpty()) {
+            url = url + "?filter=" + URLEncoder.encode(filter, StandardCharsets.UTF_8.name());
+        }
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String body = readBodyOrThrow(response);
+            JSONArray array = new JSONArray(body.isBlank() ? "[]" : body);
+            List<AdminMemberDto> members = new ArrayList<>();
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject obj = array.optJSONObject(i);
+                if (obj == null) {
+                    continue;
+                }
+                AdminMemberDto dto = new AdminMemberDto();
+                dto.setId(obj.optLong("id"));
+                dto.setUserName(obj.optString("userName"));
+                dto.setEmail(obj.optString("email", null));
+                dto.setAvatarUrl(obj.optString("avatarUrl", null));
+                dto.setAccountTier(obj.optString("accountTier", null));
+                dto.setVipExpiresAt(obj.isNull("vipExpiresAt") ? null : obj.optString("vipExpiresAt"));
+                dto.setHasPendingRequest(obj.optBoolean("hasPendingRequest", false));
+                dto.setRequestStatus(obj.optString("requestStatus", null));
+                dto.setRequestNote(obj.optString("requestNote", null));
+                dto.setRequestCreatedAt(obj.optString("requestCreatedAt", null));
+                members.add(dto);
+            }
+            return members;
         }
     }
 
