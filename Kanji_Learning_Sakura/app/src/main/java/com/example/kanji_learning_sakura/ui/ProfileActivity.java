@@ -2,6 +2,7 @@ package com.example.kanji_learning_sakura.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -14,7 +15,9 @@ import com.example.kanji_learning_sakura.core.KanjiService;
 import com.example.kanji_learning_sakura.model.ProfileDto;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.textfield.TextInputEditText;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -36,6 +39,9 @@ public class ProfileActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private View content;
     private MaterialButton btnUpgrade;
+    private MaterialButton btnRequestVip;
+    private TextView tvPendingUpgrade;
+    private boolean isSubmittingRequest = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,9 +69,12 @@ public class ProfileActivity extends AppCompatActivity {
         content = findViewById(R.id.profileScroll);
 
         btnUpgrade = findViewById(R.id.btnUpgrade);
+        btnRequestVip = findViewById(R.id.btnRequestVip);
+        tvPendingUpgrade = findViewById(R.id.tvPendingUpgrade);
         MaterialButton btnLogout = findViewById(R.id.btnLogoutProfile);
 
         btnUpgrade.setOnClickListener(v -> startActivity(new Intent(this, MomoUpgradeActivity.class)));
+        btnRequestVip.setOnClickListener(v -> showVipRequestDialog());
         btnLogout.setOnClickListener(v -> {
             authPrefs.clear();
             startActivity(new Intent(this, WelcomeActivity.class)
@@ -93,10 +102,14 @@ public class ProfileActivity extends AppCompatActivity {
         if (avatar != null && !avatar.isEmpty()) {
             Picasso.get().load(avatar).placeholder(R.drawable.ic_launcher_foreground).into(imgAvatar);
         }
-        updateTierBadge(authPrefs.accountTier(), authPrefs.roleId());
+        String cachedTier = authPrefs.accountTier();
+        int cachedRole = authPrefs.roleId();
+        updateTierBadge(cachedTier, cachedRole);
         tvBalance.setText(getString(R.string.profile_balance, authPrefs.accountBalance()));
         tvVipExpire.setText(getString(R.string.profile_vip_unset));
         tvBio.setText("—");
+        boolean isVip = "VIP".equalsIgnoreCase(cachedTier) || cachedRole == 3;
+        updateVipActionState(isVip, cachedRole, authPrefs.hasPendingUpgradeRequest());
     }
 
     private void loadProfile() {
@@ -110,7 +123,7 @@ public class ProfileActivity extends AppCompatActivity {
                 ProfileDto profile = service.getProfile();
                 authPrefs.save(authPrefs.token(), profile.getRoleId(), profile.getId(), profile.getUserName(),
                         profile.getEmail(), profile.getAvatarUrl(), profile.getAccountTier(), profile.getAccountBalance(),
-                        profile.getVipExpiresAt(), profile.getBio());
+                        profile.getVipExpiresAt(), profile.getBio(), profile.isHasPendingUpgradeRequest());
                 runOnUiThread(() -> renderProfile(profile));
             } catch (IllegalStateException ex) {
                 runOnUiThread(() -> {
@@ -153,7 +166,8 @@ public class ProfileActivity extends AppCompatActivity {
             imgAvatar.setImageResource(R.drawable.ic_launcher_foreground);
         }
         boolean isVip = "VIP".equalsIgnoreCase(profile.getAccountTier()) || profile.getRoleId() == 3;
-        btnUpgrade.setEnabled(!isVip && profile.getRoleId() != 1);
+        authPrefs.setPendingUpgradeRequest(profile.isHasPendingUpgradeRequest());
+        updateVipActionState(isVip, profile.getRoleId(), profile.isHasPendingUpgradeRequest());
     }
 
     private void setLoading(boolean loading) {
@@ -171,6 +185,73 @@ public class ProfileActivity extends AppCompatActivity {
             display = getString(R.string.profile_role_free);
         }
         tvTier.setText(getString(R.string.profile_account_tier, display));
+    }
+
+    private void updateVipActionState(boolean isVip, int roleId, boolean hasPending) {
+        boolean isAdmin = roleId == 1;
+        btnUpgrade.setEnabled(!isVip && !isAdmin && !hasPending);
+        btnRequestVip.setVisibility(isAdmin ? View.GONE : View.VISIBLE);
+        btnRequestVip.setEnabled(!isVip && !isAdmin && !hasPending);
+        tvPendingUpgrade.setVisibility(hasPending ? View.VISIBLE : View.GONE);
+    }
+
+    private void showVipRequestDialog() {
+        if (isSubmittingRequest) {
+            return;
+        }
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_vip_request, null, false);
+        TextInputEditText edtNote = view.findViewById(R.id.edtVipRequestNote);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_vip_request_title)
+                .setView(view)
+                .setNegativeButton(R.string.dialog_vip_request_cancel, null)
+                .setPositiveButton(R.string.dialog_vip_request_submit, (dialog, which) -> {
+                    CharSequence text = edtNote.getText();
+                    String note = text != null ? text.toString() : "";
+                    submitVipRequest(note);
+                })
+                .show();
+    }
+
+    private void submitVipRequest(String note) {
+        if (isSubmittingRequest) {
+            return;
+        }
+        isSubmittingRequest = true;
+        isLoading = true;
+        setLoading(true);
+        new Thread(() -> {
+            try {
+                service.requestVipUpgrade(note);
+                authPrefs.setPendingUpgradeRequest(true);
+                runOnUiThread(() -> {
+                    toast(getString(R.string.profile_request_sent));
+                    boolean isVip = "VIP".equalsIgnoreCase(authPrefs.accountTier()) || authPrefs.roleId() == 3;
+                    updateVipActionState(isVip, authPrefs.roleId(), true);
+                    setLoading(false);
+                    isLoading = false;
+                    isSubmittingRequest = false;
+                });
+            } catch (IllegalStateException ex) {
+                runOnUiThread(() -> {
+                    toast(getString(R.string.profile_request_error, ex.getMessage()));
+                    setLoading(false);
+                    isLoading = false;
+                    isSubmittingRequest = false;
+                    boolean isVip = "VIP".equalsIgnoreCase(authPrefs.accountTier()) || authPrefs.roleId() == 3;
+                    updateVipActionState(isVip, authPrefs.roleId(), authPrefs.hasPendingUpgradeRequest());
+                });
+            } catch (Exception ex) {
+                runOnUiThread(() -> {
+                    toast(getString(R.string.profile_request_error, getString(R.string.msg_network_error)));
+                    setLoading(false);
+                    isLoading = false;
+                    isSubmittingRequest = false;
+                    boolean isVip = "VIP".equalsIgnoreCase(authPrefs.accountTier()) || authPrefs.roleId() == 3;
+                    updateVipActionState(isVip, authPrefs.roleId(), authPrefs.hasPendingUpgradeRequest());
+                });
+            }
+        }).start();
     }
 
     private void toast(String msg) {

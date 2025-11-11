@@ -1,6 +1,8 @@
 package app.api.auth;
 
+import app.dao.AccountUpgradeRequestDAO;
 import app.dao.UserDAO;
+import app.model.AccountUpgradeRequest;
 import app.model.User;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -44,6 +46,8 @@ public class AuthMeServlet extends HttpServlet {
                 resp.getWriter().print(new JSONObject().put("error", "User not found").toString());
                 return;
             }
+            AccountUpgradeRequestDAO requestDAO = new AccountUpgradeRequestDAO();
+            AccountUpgradeRequest pending = requestDAO.findLatestPendingByUser(userId);
             JSONObject json = new JSONObject()
                     .put("id", user.getId())
                     .put("userName", user.getUserName())
@@ -53,7 +57,13 @@ public class AuthMeServlet extends HttpServlet {
                     .put("accountTier", user.getAccountTier())
                     .put("accountBalance", user.getAccountBalance() != null ? user.getAccountBalance() : 0)
                     .put("vipExpiresAt", user.getVipExpiresAt() != null ? user.getVipExpiresAt().toString() : JSONObject.NULL)
-                    .put("bio", user.getBio());
+                    .put("bio", user.getBio())
+                    .put("hasPendingUpgradeRequest", pending != null);
+            if (pending != null) {
+                json.put("pendingUpgradeRequestId", pending.getRequestId());
+                json.put("pendingUpgradeCreatedAt", pending.getCreatedAt() != null ? pending.getCreatedAt().toString() : JSONObject.NULL);
+                json.put("pendingUpgradeNote", pending.getNote() != null ? pending.getNote() : JSONObject.NULL);
+            }
             resp.getWriter().print(json.toString());
         } catch (SQLException ex) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

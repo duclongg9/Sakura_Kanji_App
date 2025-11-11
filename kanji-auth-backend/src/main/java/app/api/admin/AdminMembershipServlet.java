@@ -54,6 +54,7 @@ public class AdminMembershipServlet extends HttpServlet {
         boolean hasPending = member.getRequestId() != null;
         json.put("hasPendingRequest", hasPending);
         if (hasPending) {
+            json.put("requestId", member.getRequestId());
             json.put("requestStatus", member.getRequestStatus());
             json.put("requestNote", member.getRequestNote());
             if (member.getRequestCreatedAt() != null) {
@@ -62,6 +63,7 @@ public class AdminMembershipServlet extends HttpServlet {
                 json.put("requestCreatedAt", JSONObject.NULL);
             }
         } else {
+            json.put("requestId", JSONObject.NULL);
             json.put("requestStatus", JSONObject.NULL);
             json.put("requestNote", JSONObject.NULL);
             json.put("requestCreatedAt", JSONObject.NULL);

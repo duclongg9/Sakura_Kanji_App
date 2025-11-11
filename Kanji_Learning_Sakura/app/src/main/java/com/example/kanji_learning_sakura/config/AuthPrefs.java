@@ -18,6 +18,7 @@ public class AuthPrefs {
     private static final String K_BALANCE = "accountBalance";
     private static final String K_VIP_EXPIRES = "vipExpiresAt";
     private static final String K_BIO = "bio";
+    private static final String K_PENDING_UPGRADE = "pendingUpgrade";
 
     private final SharedPreferences sp;
 
@@ -31,7 +32,7 @@ public class AuthPrefs {
      */
     public void save(String jwt, int roleId, long userId, String userName,
                      String email, String avatarUrl, String accountTier, double balance,
-                     String vipExpiresAt, String bio) {
+                     String vipExpiresAt, String bio, boolean pendingUpgrade) {
         sp.edit()
                 .putString(K_TOKEN, jwt)
                 .putInt(K_ROLE, roleId)
@@ -43,6 +44,7 @@ public class AuthPrefs {
                 .putFloat(K_BALANCE, (float) balance)
                 .putString(K_VIP_EXPIRES, vipExpiresAt)
                 .putString(K_BIO, bio)
+                .putBoolean(K_PENDING_UPGRADE, pendingUpgrade)
                 .apply();
     }
 
@@ -75,6 +77,12 @@ public class AuthPrefs {
 
     /** @return ghi chú/bio của người dùng. */
     public String bio() { return sp.getString(K_BIO, null); }
+
+    /** @return {@code true} nếu người dùng đã gửi yêu cầu nâng cấp VIP. */
+    public boolean hasPendingUpgradeRequest() { return sp.getBoolean(K_PENDING_UPGRADE, false); }
+
+    /** Lưu trạng thái yêu cầu VIP thủ công. */
+    public void setPendingUpgradeRequest(boolean pending) { sp.edit().putBoolean(K_PENDING_UPGRADE, pending).apply(); }
 
     /** @return {@code true} nếu đã có token hợp lệ. */
     public boolean isLoggedIn() { return token() != null; }

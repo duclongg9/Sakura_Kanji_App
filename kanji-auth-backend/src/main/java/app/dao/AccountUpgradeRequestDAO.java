@@ -9,6 +9,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Locale;
 
 /**
  * DAO xử lý lưu trữ yêu cầu nâng cấp tài khoản VIP.
@@ -59,11 +60,86 @@ public class AccountUpgradeRequestDAO extends BaseDAO {
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
                     long id = keys.getLong(1);
-                    return findById(id, connection);
+                    AccountUpgradeRequest created = findById(id, connection);
+                    if (created != null) {
+                        return created;
+                    }
                 }
             }
         }
         throw new SQLException("Cannot create upgrade request");
+    }
+
+    /**
+     * Tìm yêu cầu theo ID.
+     *
+     * @param requestId mã yêu cầu.
+     * @return bản ghi {@link AccountUpgradeRequest} hoặc {@code null} nếu không tồn tại.
+     * @throws SQLException lỗi truy vấn DB.
+     */
+    public AccountUpgradeRequest findById(long requestId) throws SQLException {
+        try (Connection connection = getConnection()) {
+            return findById(requestId, connection);
+        }
+    }
+
+    /**
+     * Lấy yêu cầu đang chờ xử lý mới nhất của người dùng.
+     *
+     * @param userId id người dùng.
+     * @return yêu cầu mới nhất hoặc {@code null} nếu không có.
+     * @throws SQLException lỗi truy vấn DB.
+     */
+    public AccountUpgradeRequest findLatestPendingByUser(long userId) throws SQLException {
+        final String sql = "SELECT request_id, user_id, currentRoleId, targetRoleId, note, status, createdAt, processedAt "
+                + "FROM AccountUpgradeRequest WHERE user_id = ? AND status = 'PENDING' "
+                + "ORDER BY createdAt DESC LIMIT 1";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setLong(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Cập nhật trạng thái yêu cầu.
+     *
+     * @param requestId id yêu cầu cần cập nhật.
+     * @param status    trạng thái mới (APPROVED/REJECTED/PENDING).
+     * @return bản ghi sau khi cập nhật hoặc {@code null} nếu không có bản ghi phù hợp.
+     * @throws SQLException lỗi truy vấn DB.
+     */
+    public AccountUpgradeRequest updateStatus(long requestId, String status) throws SQLException {
+        String normalized = status != null ? status.toUpperCase(Locale.ROOT) : null;
+        if (normalized == null) {
+            throw new IllegalArgumentException("Status must not be null");
+        }
+        boolean pending = "PENDING".equals(normalized);
+        StringBuilder sql = new StringBuilder("UPDATE AccountUpgradeRequest SET status = ?, processedAt = ");
+        if (pending) {
+            sql.append("NULL");
+        } else {
+            sql.append("CURRENT_TIMESTAMP");
+        }
+        sql.append(" WHERE request_id = ?");
+        if (!pending) {
+            sql.append(" AND status = 'PENDING'");
+        }
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            ps.setString(1, normalized);
+            ps.setLong(2, requestId);
+            int updated = ps.executeUpdate();
+            if (updated == 0) {
+                return null;
+            }
+            return findById(requestId, connection);
+        }
     }
 
     private AccountUpgradeRequest findById(long id, Connection existing) throws SQLException {
@@ -73,19 +149,23 @@ public class AccountUpgradeRequestDAO extends BaseDAO {
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    AccountUpgradeRequest request = new AccountUpgradeRequest();
-                    request.setRequestId(rs.getLong("request_id"));
-                    request.setUserId(rs.getLong("user_id"));
-                    request.setCurrentRoleId(rs.getInt("currentRoleId"));
-                    request.setTargetRoleId(rs.getInt("targetRoleId"));
-                    request.setNote(rs.getString("note"));
-                    request.setStatus(rs.getString("status"));
-                    request.setCreatedAt(toLocalDateTime(rs.getTimestamp("createdAt")));
-                    request.setProcessedAt(toLocalDateTime(rs.getTimestamp("processedAt")));
-                    return request;
+                    return mapRow(rs);
                 }
             }
         }
-        throw new SQLException("Upgrade request not found after insert");
+        return null;
+    }
+
+    private AccountUpgradeRequest mapRow(ResultSet rs) throws SQLException {
+        AccountUpgradeRequest request = new AccountUpgradeRequest();
+        request.setRequestId(rs.getLong("request_id"));
+        request.setUserId(rs.getLong("user_id"));
+        request.setCurrentRoleId(rs.getInt("currentRoleId"));
+        request.setTargetRoleId(rs.getInt("targetRoleId"));
+        request.setNote(rs.getString("note"));
+        request.setStatus(rs.getString("status"));
+        request.setCreatedAt(toLocalDateTime(rs.getTimestamp("createdAt")));
+        request.setProcessedAt(toLocalDateTime(rs.getTimestamp("processedAt")));
+        return request;
     }
 }

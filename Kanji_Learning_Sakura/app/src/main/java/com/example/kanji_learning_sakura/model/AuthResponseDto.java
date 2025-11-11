@@ -14,6 +14,7 @@ public class AuthResponseDto {
     private double accountBalance;
     private String vipExpiresAt;
     private String bio;
+    private boolean hasPendingUpgradeRequest;
 
     public String getToken() {
         return token;
@@ -93,5 +94,13 @@ public class AuthResponseDto {
 
     public void setBio(String bio) {
         this.bio = bio;
+    }
+
+    public boolean isHasPendingUpgradeRequest() {
+        return hasPendingUpgradeRequest;
+    }
+
+    public void setHasPendingUpgradeRequest(boolean hasPendingUpgradeRequest) {
+        this.hasPendingUpgradeRequest = hasPendingUpgradeRequest;
     }
 }

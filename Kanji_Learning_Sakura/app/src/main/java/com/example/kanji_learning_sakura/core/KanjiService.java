@@ -1,6 +1,7 @@
 package com.example.kanji_learning_sakura.core;
 
 import android.content.Context;
+import com.example.kanji_learning_sakura.model.AccountUpgradeRequestDto;
 import com.example.kanji_learning_sakura.model.AdminMemberDto;
 import com.example.kanji_learning_sakura.model.AuthResponseDto;
 import com.example.kanji_learning_sakura.model.BulkImportReportDto;
@@ -76,6 +77,7 @@ public class KanjiService {
             dto.setAccountBalance(data.optDouble("accountBalance", 0));
             dto.setVipExpiresAt(data.isNull("vipExpiresAt") ? null : data.optString("vipExpiresAt"));
             dto.setBio(data.optString("bio", null));
+            dto.setHasPendingUpgradeRequest(data.optBoolean("hasPendingUpgradeRequest", false));
             return dto;
         }
     }
@@ -109,6 +111,7 @@ public class KanjiService {
             dto.setAccountBalance(data.optDouble("accountBalance", 0));
             dto.setVipExpiresAt(data.isNull("vipExpiresAt") ? null : data.optString("vipExpiresAt"));
             dto.setBio(data.optString("bio", null));
+            dto.setHasPendingUpgradeRequest(data.optBoolean("hasPendingUpgradeRequest", false));
             return dto;
         }
     }
@@ -139,7 +142,54 @@ public class KanjiService {
             dto.setAccountBalance(obj.optDouble("accountBalance", 0));
             dto.setVipExpiresAt(obj.isNull("vipExpiresAt") ? null : obj.optString("vipExpiresAt"));
             dto.setBio(obj.optString("bio", null));
+            dto.setHasPendingUpgradeRequest(obj.optBoolean("hasPendingUpgradeRequest", false));
             return dto;
+        }
+    }
+
+    /**
+     * Gửi yêu cầu nâng cấp VIP thủ công tới quản trị viên.
+     *
+     * @param note ghi chú tùy chọn từ người dùng.
+     * @return {@link AccountUpgradeRequestDto} vừa tạo.
+     * @throws Exception nếu backend phản hồi lỗi.
+     */
+    public AccountUpgradeRequestDto requestVipUpgrade(String note) throws Exception {
+        JSONObject payload = new JSONObject();
+        if (note != null) {
+            String trimmed = note.trim();
+            if (!trimmed.isEmpty()) {
+                payload.put("note", trimmed);
+            }
+        }
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/account/upgrade-requests")
+                .post(RequestBody.create(payload.toString(), JSON))
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String body = readBodyOrThrow(response);
+            JSONObject obj = new JSONObject(body.isBlank() ? "{}" : body);
+            return parseUpgradeRequest(obj);
+        }
+    }
+
+    /**
+     * Phê duyệt yêu cầu nâng cấp VIP từ phía quản trị viên.
+     *
+     * @param requestId id yêu cầu cần phê duyệt.
+     * @return trạng thái mới của yêu cầu.
+     * @throws Exception nếu backend trả lỗi hoặc request thất bại.
+     */
+    public AccountUpgradeRequestDto approveVipRequest(long requestId) throws Exception {
+        JSONObject payload = new JSONObject().put("requestId", requestId);
+        Request request = new Request.Builder()
+                .url(baseUrl + "/api/admin/upgrade-requests/approve")
+                .post(RequestBody.create(payload.toString(), JSON))
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String body = readBodyOrThrow(response);
+            JSONObject obj = new JSONObject(body.isBlank() ? "{}" : body);
+            return parseUpgradeRequest(obj);
         }
     }
 
@@ -765,6 +815,11 @@ public class KanjiService {
                 dto.setAccountTier(obj.optString("accountTier", null));
                 dto.setVipExpiresAt(obj.isNull("vipExpiresAt") ? null : obj.optString("vipExpiresAt"));
                 dto.setHasPendingRequest(obj.optBoolean("hasPendingRequest", false));
+                if (obj.isNull("requestId")) {
+                    dto.setRequestId(null);
+                } else {
+                    dto.setRequestId(obj.optLong("requestId"));
+                }
                 dto.setRequestStatus(obj.optString("requestStatus", null));
                 dto.setRequestNote(obj.optString("requestNote", null));
                 dto.setRequestCreatedAt(obj.optString("requestCreatedAt", null));
@@ -772,6 +827,17 @@ public class KanjiService {
             }
             return members;
         }
+    }
+
+    private AccountUpgradeRequestDto parseUpgradeRequest(JSONObject obj) {
+        AccountUpgradeRequestDto dto = new AccountUpgradeRequestDto();
+        dto.setRequestId(obj.optLong("requestId"));
+        dto.setUserId(obj.optLong("userId"));
+        dto.setStatus(obj.optString("status", null));
+        dto.setNote(obj.isNull("note") ? null : obj.optString("note", null));
+        dto.setCreatedAt(obj.optString("createdAt", null));
+        dto.setProcessedAt(obj.optString("processedAt", null));
+        return dto;
     }
 
     private String readBodyOrThrow(Response response) throws IOException {

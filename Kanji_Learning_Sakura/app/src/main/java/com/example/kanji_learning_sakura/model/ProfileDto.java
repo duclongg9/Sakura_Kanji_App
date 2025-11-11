@@ -13,6 +13,7 @@ public class ProfileDto {
     private double accountBalance;
     private String vipExpiresAt;
     private String bio;
+    private boolean hasPendingUpgradeRequest;
 
     public long getId() {
         return id;
@@ -84,5 +85,13 @@ public class ProfileDto {
 
     public void setBio(String bio) {
         this.bio = bio;
+    }
+
+    public boolean isHasPendingUpgradeRequest() {
+        return hasPendingUpgradeRequest;
+    }
+
+    public void setHasPendingUpgradeRequest(boolean hasPendingUpgradeRequest) {
+        this.hasPendingUpgradeRequest = hasPendingUpgradeRequest;
     }
 }
