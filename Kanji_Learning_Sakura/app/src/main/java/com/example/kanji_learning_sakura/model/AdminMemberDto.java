@@ -11,6 +11,7 @@ public class AdminMemberDto {
     private String accountTier;
     private String vipExpiresAt;
     private boolean hasPendingRequest;
+    private Long requestId;
     private String requestStatus;
     private String requestNote;
     private String requestCreatedAt;
@@ -69,6 +70,14 @@ public class AdminMemberDto {
 
     public void setHasPendingRequest(boolean hasPendingRequest) {
         this.hasPendingRequest = hasPendingRequest;
+    }
+
+    public Long getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(Long requestId) {
+        this.requestId = requestId;
     }
 
     public String getRequestStatus() {

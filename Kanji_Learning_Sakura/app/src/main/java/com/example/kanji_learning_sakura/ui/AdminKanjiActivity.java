@@ -122,7 +122,7 @@ public class AdminKanjiActivity extends AppCompatActivity {
         rvKanji.setAdapter(adapter);
 
         rvMembers.setLayoutManager(new LinearLayoutManager(this));
-        memberAdapter = new AdminMemberAdapter();
+        memberAdapter = new AdminMemberAdapter(this::confirmApproveRequest);
         rvMembers.setAdapter(memberAdapter);
 
         loadVipPlans();
@@ -453,6 +453,42 @@ public class AdminKanjiActivity extends AppCompatActivity {
         tvMembersEmpty.setText(message);
         tvMembersEmpty.setVisibility(show ? View.VISIBLE : View.GONE);
         rvMembers.setVisibility(show ? View.INVISIBLE : View.VISIBLE);
+    }
+
+    private void confirmApproveRequest(@NonNull AdminMemberDto member) {
+        if (member.getRequestId() == null) {
+            toast(getString(R.string.toast_member_approve_failed, getString(R.string.member_request_status_pending)));
+            return;
+        }
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.member_confirm_approve_title)
+                .setMessage(getString(R.string.member_confirm_approve_message, member.getUserName()))
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.member_action_approve, (dialog, which) -> approveVipRequest(member))
+                .show();
+    }
+
+    private void approveVipRequest(@NonNull AdminMemberDto member) {
+        setMembersLoading(true);
+        new Thread(() -> {
+            try {
+                service.approveVipRequest(member.getRequestId());
+                runOnUiThread(() -> {
+                    toast(getString(R.string.toast_member_approved, member.getUserName()));
+                    loadMembers(currentMemberFilter);
+                });
+            } catch (IllegalStateException ex) {
+                runOnUiThread(() -> {
+                    setMembersLoading(false);
+                    toast(getString(R.string.toast_member_approve_failed, ex.getMessage()));
+                });
+            } catch (Exception ex) {
+                runOnUiThread(() -> {
+                    setMembersLoading(false);
+                    toast(getString(R.string.toast_member_approve_failed, getString(R.string.msg_network_error)));
+                });
+            }
+        }).start();
     }
 
     private String formatCurrency(double amount) {

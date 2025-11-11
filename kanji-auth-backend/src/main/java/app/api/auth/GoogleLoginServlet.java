@@ -1,6 +1,8 @@
 package app.api.auth;
 
+import app.dao.AccountUpgradeRequestDAO;
 import app.dao.UserDAO;
+import app.model.AccountUpgradeRequest;
 import app.model.User;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -63,6 +65,8 @@ public class GoogleLoginServlet extends HttpServlet {
             User user = userDAO.ensureOAuthUser(email, name, picture);
 
             String fakeToken = "demo-" + user.getId();
+            AccountUpgradeRequestDAO requestDAO = new AccountUpgradeRequestDAO();
+            AccountUpgradeRequest pending = requestDAO.findLatestPendingByUser(user.getId());
             JSONObject response = new JSONObject()
                     .put("token", fakeToken)
                     .put("roleId", user.getRoleId())
@@ -73,7 +77,13 @@ public class GoogleLoginServlet extends HttpServlet {
                     .put("accountTier", user.getAccountTier())
                     .put("accountBalance", user.getAccountBalance() != null ? user.getAccountBalance() : 0)
                     .put("vipExpiresAt", user.getVipExpiresAt() != null ? user.getVipExpiresAt().toString() : JSONObject.NULL)
-                    .put("bio", user.getBio());
+                    .put("bio", user.getBio())
+                    .put("hasPendingUpgradeRequest", pending != null);
+            if (pending != null) {
+                response.put("pendingUpgradeRequestId", pending.getRequestId());
+                response.put("pendingUpgradeCreatedAt", pending.getCreatedAt() != null ? pending.getCreatedAt().toString() : JSONObject.NULL);
+                response.put("pendingUpgradeNote", pending.getNote() != null ? pending.getNote() : JSONObject.NULL);
+            }
             resp.getWriter().print(response.toString());
         } catch (Exception ex) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

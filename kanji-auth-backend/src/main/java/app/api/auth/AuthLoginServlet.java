@@ -1,6 +1,8 @@
 package app.api.auth;
 
+import app.dao.AccountUpgradeRequestDAO;
 import app.dao.UserDAO;
+import app.model.AccountUpgradeRequest;
 import app.model.User;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -43,6 +45,8 @@ public class AuthLoginServlet extends HttpServlet {
             }
 
             String fakeToken = "demo-" + user.getId();
+            AccountUpgradeRequestDAO requestDAO = new AccountUpgradeRequestDAO();
+            AccountUpgradeRequest pending = requestDAO.findLatestPendingByUser(user.getId());
             JSONObject responseJson = new JSONObject()
                     .put("token", fakeToken)
                     .put("roleId", user.getRoleId())
@@ -53,7 +57,13 @@ public class AuthLoginServlet extends HttpServlet {
                     .put("accountTier", user.getAccountTier())
                     .put("accountBalance", user.getAccountBalance() != null ? user.getAccountBalance() : 0)
                     .put("vipExpiresAt", user.getVipExpiresAt() != null ? user.getVipExpiresAt().toString() : JSONObject.NULL)
-                    .put("bio", user.getBio());
+                    .put("bio", user.getBio())
+                    .put("hasPendingUpgradeRequest", pending != null);
+            if (pending != null) {
+                responseJson.put("pendingUpgradeRequestId", pending.getRequestId());
+                responseJson.put("pendingUpgradeCreatedAt", pending.getCreatedAt() != null ? pending.getCreatedAt().toString() : JSONObject.NULL);
+                responseJson.put("pendingUpgradeNote", pending.getNote() != null ? pending.getNote() : JSONObject.NULL);
+            }
             out.print(responseJson.toString());
         } catch (SQLException ex) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

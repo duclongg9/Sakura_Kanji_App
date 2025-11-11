@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.kanji_learning_sakura.R;
 import com.example.kanji_learning_sakura.model.AdminMemberDto;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.textview.MaterialTextView;
 import java.util.ArrayList;
@@ -20,6 +21,14 @@ import java.util.List;
 public class AdminMemberAdapter extends RecyclerView.Adapter<AdminMemberAdapter.MemberViewHolder> {
 
     private final List<AdminMemberDto> items = new ArrayList<>();
+    private final Listener listener;
+
+    /**
+     * @param listener callback xử lý hành động người dùng.
+     */
+    public AdminMemberAdapter(Listener listener) {
+        this.listener = listener;
+    }
 
     /**
      * Cập nhật dữ liệu hiển thị.
@@ -52,13 +61,14 @@ public class AdminMemberAdapter extends RecyclerView.Adapter<AdminMemberAdapter.
     /**
      * ViewHolder cho từng hội viên.
      */
-    static class MemberViewHolder extends RecyclerView.ViewHolder {
+    class MemberViewHolder extends RecyclerView.ViewHolder {
 
         private final MaterialTextView tvName;
         private final MaterialTextView tvEmail;
         private final MaterialTextView tvVipExpiry;
         private final MaterialTextView tvRequest;
         private final Chip chipTier;
+        private final MaterialButton btnApprove;
 
         MemberViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -67,6 +77,13 @@ public class AdminMemberAdapter extends RecyclerView.Adapter<AdminMemberAdapter.
             tvVipExpiry = itemView.findViewById(R.id.tvMemberVipExpiry);
             tvRequest = itemView.findViewById(R.id.tvMemberRequest);
             chipTier = itemView.findViewById(R.id.chipMemberTier);
+            btnApprove = itemView.findViewById(R.id.btnApproveVip);
+            btnApprove.setOnClickListener(v -> {
+                int position = getBindingAdapterPosition();
+                if (listener != null && position != RecyclerView.NO_POSITION) {
+                    listener.onApprove(items.get(position));
+                }
+            });
         }
 
         void bind(AdminMemberDto item) {
@@ -95,8 +112,11 @@ public class AdminMemberAdapter extends RecyclerView.Adapter<AdminMemberAdapter.
                     note = context.getString(R.string.member_pending_request_no_note);
                 }
                 tvRequest.setText(context.getString(R.string.member_pending_request, statusLabel, note));
+                btnApprove.setVisibility(item.getRequestId() != null ? View.VISIBLE : View.GONE);
+                btnApprove.setEnabled(item.getRequestId() != null);
             } else {
                 tvRequest.setVisibility(View.GONE);
+                btnApprove.setVisibility(View.GONE);
             }
         }
 
@@ -133,5 +153,13 @@ public class AdminMemberAdapter extends RecyclerView.Adapter<AdminMemberAdapter.
                     return context.getString(R.string.member_request_status_pending);
             }
         }
+    }
+
+    /**
+     * Lắng nghe các hành động trên từng hội viên.
+     */
+    public interface Listener {
+        /** Khi admin muốn phê duyệt yêu cầu VIP. */
+        void onApprove(@NonNull AdminMemberDto member);
     }
 }
