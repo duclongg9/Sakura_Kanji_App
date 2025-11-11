@@ -133,6 +133,12 @@ body {
   background: #fff;
   min-width: 190px;
   font: inherit;
+   color: #0f172a;
+}
+
+/* CSS: Đảm bảo chữ trong dropdown hiển thị rõ ràng, tránh bị chuyển thành màu trắng */
+.filter select option {
+  color: #0f172a;
 }
 
 .table-wrapper {
