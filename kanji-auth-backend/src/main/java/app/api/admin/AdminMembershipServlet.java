@@ -31,7 +31,7 @@ public class AdminMembershipServlet extends HttpServlet {
             List<AdminMember> members = dao.listMembers(filter);
             JSONArray array = new JSONArray();
             for (AdminMember member : members) {
-                array.put(toJson(member));
+                array.put(toJson(req, member));
             }
             resp.getWriter().print(array.toString());
         } catch (SQLException ex) {
@@ -39,7 +39,14 @@ public class AdminMembershipServlet extends HttpServlet {
         }
     }
 
-    private JSONObject toJson(AdminMember member) {
+    /**
+     * Chuyển đổi thông tin hội viên sang JSON kèm các liên kết chứng từ nếu có.
+     *
+     * @param req    request hiện tại để xác định context path.
+     * @param member hội viên cần chuyển đổi.
+     * @return đối tượng JSON tương ứng.
+     */
+    private JSONObject toJson(HttpServletRequest req, AdminMember member) {
         JSONObject json = new JSONObject()
                 .put("id", member.getId())
                 .put("userName", member.getUserName())
@@ -62,11 +69,25 @@ public class AdminMembershipServlet extends HttpServlet {
             } else {
                 json.put("requestCreatedAt", JSONObject.NULL);
             }
+            String receiptFile = member.getRequestReceiptImagePath();
+            if (receiptFile != null && !receiptFile.isBlank()) {
+                String receiptUrl = req.getContextPath() + "/uploads/upgrade-receipts/" + receiptFile;
+                json.put("requestReceiptUrl", receiptUrl);
+            } else {
+                json.put("requestReceiptUrl", JSONObject.NULL);
+            }
+            if (member.getRequestTransactionCode() != null) {
+                json.put("requestTransactionCode", member.getRequestTransactionCode());
+            } else {
+                json.put("requestTransactionCode", JSONObject.NULL);
+            }
         } else {
             json.put("requestId", JSONObject.NULL);
             json.put("requestStatus", JSONObject.NULL);
             json.put("requestNote", JSONObject.NULL);
             json.put("requestCreatedAt", JSONObject.NULL);
+            json.put("requestReceiptUrl", JSONObject.NULL);
+            json.put("requestTransactionCode", JSONObject.NULL);
         }
         return json;
     }

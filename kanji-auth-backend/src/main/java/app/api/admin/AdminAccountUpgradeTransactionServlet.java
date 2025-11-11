@@ -5,19 +5,20 @@ import app.dao.AccountUpgradeRequestDAO;
 import app.dao.UserDAO;
 import app.model.AccountUpgradeRequest;
 import app.model.User;
-import java.io.IOException;
-import java.sql.SQLException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
 import org.json.JSONObject;
 
 /**
- * API cho phép quản trị viên phê duyệt yêu cầu nâng cấp VIP.
+ * API cho phép quản trị viên cập nhật mã giao dịch cho yêu cầu nâng cấp VIP.
  */
-@WebServlet(name = "AdminAccountUpgradeServlet", urlPatterns = "/api/admin/upgrade-requests/approve")
-public class AdminAccountUpgradeServlet extends HttpServlet {
+@WebServlet(name = "AdminAccountUpgradeTransactionServlet",
+        urlPatterns = "/api/admin/upgrade-requests/transaction-code")
+public class AdminAccountUpgradeTransactionServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -32,7 +33,7 @@ public class AdminAccountUpgradeServlet extends HttpServlet {
         try {
             User admin = userDAO.findById(adminId);
             if (admin == null || admin.getRoleId() != 1) {
-                JsonRequestHelper.writeError(resp, HttpServletResponse.SC_FORBIDDEN, "Forbidden", "Chỉ quản trị viên mới được phê duyệt yêu cầu");
+                JsonRequestHelper.writeError(resp, HttpServletResponse.SC_FORBIDDEN, "Forbidden", "Chỉ quản trị viên mới được cập nhật mã giao dịch");
                 return;
             }
 
@@ -50,6 +51,13 @@ public class AdminAccountUpgradeServlet extends HttpServlet {
                 JsonRequestHelper.writeValidationErrors(resp, details);
                 return;
             }
+            String transactionCode = payload.optString("transactionCode", null);
+            if (transactionCode != null) {
+                transactionCode = transactionCode.trim();
+                if (transactionCode.isEmpty()) {
+                    transactionCode = null;
+                }
+            }
 
             AccountUpgradeRequestDAO requestDAO = new AccountUpgradeRequestDAO();
             AccountUpgradeRequest request = requestDAO.findById(requestId);
@@ -58,20 +66,19 @@ public class AdminAccountUpgradeServlet extends HttpServlet {
                 return;
             }
             if (!"PENDING".equalsIgnoreCase(request.getStatus())) {
-                JsonRequestHelper.writeError(resp, HttpServletResponse.SC_CONFLICT, "InvalidState", "Yêu cầu đã được xử lý");
+                JsonRequestHelper.writeError(resp, HttpServletResponse.SC_CONFLICT, "InvalidState", "Yêu cầu đã được xử lý, không thể chỉnh sửa mã giao dịch");
                 return;
             }
 
-            userDAO.upgradeToVip(request.getUserId(), null);
-            AccountUpgradeRequest updated = requestDAO.updateStatus(requestId, "APPROVED");
+            AccountUpgradeRequest updated = requestDAO.updateTransactionCode(requestId, transactionCode);
             if (updated == null) {
-                JsonRequestHelper.writeError(resp, HttpServletResponse.SC_CONFLICT, "InvalidState", "Yêu cầu đã thay đổi trạng thái");
+                JsonRequestHelper.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "NotFound", "Không tìm thấy yêu cầu nâng cấp");
                 return;
             }
 
             resp.getWriter().print(toJson(req, updated).toString());
         } catch (SQLException ex) {
-            JsonRequestHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "DatabaseError", "Không thể phê duyệt yêu cầu: " + ex.getMessage());
+            JsonRequestHelper.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "DatabaseError", "Không thể cập nhật mã giao dịch: " + ex.getMessage());
         }
     }
 
@@ -87,13 +94,6 @@ public class AdminAccountUpgradeServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Chuyển đổi yêu cầu nâng cấp sang JSON để trả về cho client quản trị.
-     *
-     * @param req     request hiện tại.
-     * @param request yêu cầu nâng cấp.
-     * @return đối tượng JSON tương ứng.
-     */
     private JSONObject toJson(HttpServletRequest req, AccountUpgradeRequest request) {
         JSONObject json = new JSONObject()
                 .put("requestId", request.getRequestId())

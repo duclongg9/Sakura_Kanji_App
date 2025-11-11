@@ -278,6 +278,8 @@ CREATE TABLE AccountUpgradeRequest (
     currentRoleId TINYINT      NOT NULL,
     targetRoleId  TINYINT      NOT NULL,
     note          TEXT         NULL,
+    receiptImagePath VARCHAR(255) NULL,
+    transactionCode VARCHAR(100) NULL,
     status        ENUM('PENDING','APPROVED','REJECTED') NOT NULL DEFAULT 'PENDING',
     createdAt     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     processedAt   TIMESTAMP    NULL,
@@ -286,14 +288,16 @@ CREATE TABLE AccountUpgradeRequest (
     CONSTRAINT fk_upgrade_user FOREIGN KEY (user_id) REFERENCES `User`(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO AccountUpgradeRequest (request_id, user_id, currentRoleId, targetRoleId, note, status)
+INSERT INTO AccountUpgradeRequest (request_id, user_id, currentRoleId, targetRoleId, note, receiptImagePath, transactionCode, status)
 VALUES
-  (1, 1, 1, 1, 'Admin kiểm tra workflow', 'APPROVED'),
-  (2, (SELECT id FROM `User` WHERE email = 'minh.student@example.com'), 2, 3, 'Muốn ôn luyện nhanh trước kỳ thi N3.', 'PENDING'),
-  (3, (SELECT id FROM `User` WHERE email = 'thu.travel@example.com'), 2, 3, 'Đăng ký VIP để mở bài học về du lịch.', 'PENDING')
+  (1, 1, 1, 1, 'Admin kiểm tra workflow', NULL, 'ADM-001', 'APPROVED'),
+  (2, (SELECT id FROM `User` WHERE email = 'minh.student@example.com'), 2, 3, 'Muốn ôn luyện nhanh trước kỳ thi N3.', NULL, NULL, 'PENDING'),
+  (3, (SELECT id FROM `User` WHERE email = 'thu.travel@example.com'), 2, 3, 'Đăng ký VIP để mở bài học về du lịch.', NULL, NULL, 'PENDING')
 ON DUPLICATE KEY UPDATE
   status = VALUES(status),
-  note = VALUES(note);
+  note = VALUES(note),
+  receiptImagePath = VALUES(receiptImagePath),
+  transactionCode = VALUES(transactionCode);
 
 -- WalletDeposit lưu giao dịch nạp tiền qua mã QR
 DROP TABLE IF EXISTS WalletDeposit;

@@ -17,6 +17,8 @@ public class AdminMember {
     private String requestStatus;
     private String requestNote;
     private LocalDateTime requestCreatedAt;
+    private String requestReceiptImagePath;
+    private String requestTransactionCode;
 
     public long getId() {
         return id;
@@ -96,5 +98,41 @@ public class AdminMember {
 
     public void setRequestCreatedAt(LocalDateTime requestCreatedAt) {
         this.requestCreatedAt = requestCreatedAt;
+    }
+
+    /**
+     * Lấy tên file ảnh chứng từ đính kèm yêu cầu nâng cấp.
+     *
+     * @return tên file ảnh hoặc {@code null} nếu không có.
+     */
+    public String getRequestReceiptImagePath() {
+        return requestReceiptImagePath;
+    }
+
+    /**
+     * Cập nhật tên file ảnh chứng từ cho yêu cầu nâng cấp.
+     *
+     * @param requestReceiptImagePath tên file ảnh.
+     */
+    public void setRequestReceiptImagePath(String requestReceiptImagePath) {
+        this.requestReceiptImagePath = requestReceiptImagePath;
+    }
+
+    /**
+     * Lấy mã giao dịch do quản trị viên lưu lại.
+     *
+     * @return chuỗi mã giao dịch hoặc {@code null}.
+     */
+    public String getRequestTransactionCode() {
+        return requestTransactionCode;
+    }
+
+    /**
+     * Thiết lập mã giao dịch do quản trị viên thêm vào yêu cầu nâng cấp.
+     *
+     * @param requestTransactionCode chuỗi mã giao dịch.
+     */
+    public void setRequestTransactionCode(String requestTransactionCode) {
+        this.requestTransactionCode = requestTransactionCode;
     }
 }
