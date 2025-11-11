@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.kanji_learning_sakura.R;
 import com.example.kanji_learning_sakura.config.AuthPrefs;
@@ -22,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvRole;
     private TextView tvBalance;
     private ShapeableImageView imgAvatar;
+    private MaterialCardView cardExam;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         MaterialCardView cardLearn = findViewById(R.id.cardLearn);
         MaterialCardView cardQuiz = findViewById(R.id.cardQuiz);
         MaterialCardView cardAdmin = findViewById(R.id.cardAdmin);
-        MaterialCardView cardExam = findViewById(R.id.cardExam);
+        cardExam = findViewById(R.id.cardExam);
 
         refreshDashboard();
 
@@ -60,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
         cardLearn.setOnClickListener(v -> startActivity(new Intent(this, KanjiBrowserActivity.class)));
         cardQuiz.setOnClickListener(v -> startActivity(new Intent(this, QuizSetupActivity.class)));
-        cardExam.setOnClickListener(v -> startActivity(new Intent(this, ExamSetupActivity.class)));
+        cardExam.setOnClickListener(v -> handleExamClick());
 
         if (authPrefs.roleId() == 1) {
             cardAdmin.setVisibility(View.VISIBLE);
@@ -83,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         tvGreeting.setText(getString(R.string.dashboard_greeting, name));
         tvRole.setText(roleName(authPrefs.roleId(), authPrefs.accountTier()));
         tvBalance.setText(getString(R.string.dashboard_balance_label, authPrefs.accountBalance()));
+        updateExamAvailability();
 
         String avatar = authPrefs.avatarUrl();
         if (avatar != null && !avatar.isEmpty()) {
@@ -104,5 +107,36 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return getString(R.string.profile_role_free);
         }
+    }
+
+    /**
+     * Xử lý khi người dùng chạm vào thẻ tạo bài thi.
+     */
+    private void handleExamClick() {
+        if (isVipUser()) {
+            startActivity(new Intent(this, ExamSetupActivity.class));
+        } else {
+            Toast.makeText(this, R.string.msg_exam_requires_vip, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Cập nhật trạng thái hiển thị của thẻ bài thi dựa trên quyền VIP.
+     */
+    private void updateExamAvailability() {
+        if (cardExam == null) {
+            return;
+        }
+        cardExam.setAlpha(isVipUser() ? 1f : 0.4f);
+    }
+
+    /**
+     * Kiểm tra xem người dùng hiện tại có quyền truy cập tính năng VIP hay không.
+     *
+     * @return {@code true} nếu người dùng là VIP hoặc có vai trò quản trị viên.
+     */
+    private boolean isVipUser() {
+        String accountTier = authPrefs.accountTier();
+        return "VIP".equalsIgnoreCase(accountTier) || authPrefs.roleId() == 3;
     }
 }

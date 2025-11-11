@@ -45,6 +45,7 @@
     <string name="title_exam">Tạo bài thi</string>
     <string name="desc_exam">Chọn tối đa 10 chữ Kanji rồi luyện ghép nghĩa ngẫu nhiên.</string>
     <string name="action_start_exam">Bắt đầu làm bài</string>
+    <string name="msg_exam_requires_vip">Hãy sử dụng tài khoản trả phí hoặc nâng cấp VIP để mở khóa bài thi.</string>
     <string name="title_admin">Quản trị nội dung</string>
     <string name="desc_admin">Thêm level, bài học và Kanji mới cho người học.</string>
     <string name="dashboard_hero_title">Cùng nở rộ Kanji mỗi ngày</string>
